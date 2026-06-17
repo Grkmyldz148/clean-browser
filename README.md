@@ -35,15 +35,15 @@ Marketing shots, docs, changelogs and social posts look better when the site sit
 
 <div align="center">
 
-<video src="https://raw.githubusercontent.com/Grkmyldz148/clean-browser/main/videos/demo-1.mp4" poster="https://raw.githubusercontent.com/Grkmyldz148/clean-browser/main/videos/demo-1-poster.jpg" controls muted playsinline width="80%"></video>
+<img src="videos/demo-1.gif" width="80%" alt="Settings, backdrops and export in Clean Browser" />
 
-<sub><b>Settings · backdrops · export</b></sub>
+<sub><b>Settings · backdrops · export</b> · <a href="videos/demo-1.mp4">watch full MP4 ↗</a></sub>
 
 <br/><br/>
 
-<video src="https://raw.githubusercontent.com/Grkmyldz148/clean-browser/main/videos/demo-2.mp4" poster="https://raw.githubusercontent.com/Grkmyldz148/clean-browser/main/videos/demo-2-poster.jpg" controls muted playsinline width="80%"></video>
+<img src="videos/demo-2.gif" width="80%" alt="Browsing and framing a site across viewports" />
 
-<sub><b>Browse &amp; frame across viewports</b></sub>
+<sub><b>Browse &amp; frame across viewports</b> · <a href="videos/demo-2.mp4">watch full MP4 ↗</a></sub>
 
 </div>
 
