@@ -1,0 +1,38 @@
+name: Release
+
+# Push a tag like v0.1.0 to build the macOS DMG and publish a GitHub Release.
+on:
+  push:
+    tags:
+      - "v*"
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+jobs:
+  build-macos:
+    name: Build macOS DMG (arm64)
+    runs-on: macos-14 # Apple Silicon runner
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: npm
+
+      - run: npm ci
+
+      - name: Build DMG (unsigned, ad-hoc)
+        run: npm run electron:build
+        env:
+          # No paid Developer ID — skip signing discovery; the afterPack hook
+          # ad-hoc signs the app so it isn't flagged as "damaged".
+          CSC_IDENTITY_AUTO_DISCOVERY: "false"
+
+      - name: Publish to GitHub Release
+        uses: softprops/action-gh-release@v2
+        with:
+          files: release/electron/*.dmg
+          generate_release_notes: true

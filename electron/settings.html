@@ -1,0 +1,1365 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Settings</title>
+    <style>
+      :root {
+        --ink: #1d1e22;
+        --ink-soft: rgba(30, 32, 38, 0.62);
+        --ink-muted: rgba(30, 32, 38, 0.42);
+        --card: rgba(255, 255, 255, 0.66);
+        --card-strong: rgba(255, 255, 255, 0.92);
+        --line: rgba(20, 22, 28, 0.08);
+        --line-strong: rgba(20, 22, 28, 0.14);
+        --fill: rgba(20, 22, 28, 0.06);
+        --track: rgba(20, 22, 28, 0.14);
+        --accent: #4f46e5;
+        --accent-soft: rgba(79, 70, 229, 0.14);
+        --brand: #4f46e5;
+        --toolbar-line: rgba(20, 22, 28, 0.1);
+        --tab-active: rgba(20, 22, 28, 0.08);
+        --shadow-card: 0 1px 1px rgba(16, 18, 24, 0.05);
+        --window-bg: rgba(243, 243, 241, 0.82);
+
+        color: var(--ink);
+        background: var(--window-bg);
+        font-family:
+          -apple-system, BlinkMacSystemFont, "SF Pro Text", Inter, ui-sans-serif, system-ui,
+          "Segoe UI", sans-serif;
+        font-synthesis: none;
+        text-rendering: optimizeLegibility;
+        -webkit-font-smoothing: antialiased;
+        -moz-osx-font-smoothing: grayscale;
+      }
+
+      @media (prefers-color-scheme: dark) {
+        :root {
+          --ink: #f2f3f5;
+          --ink-soft: rgba(255, 255, 255, 0.62);
+          --ink-muted: rgba(255, 255, 255, 0.4);
+          --card: rgba(255, 255, 255, 0.07);
+          --card-strong: rgba(255, 255, 255, 0.14);
+          --line: rgba(255, 255, 255, 0.09);
+          --line-strong: rgba(255, 255, 255, 0.16);
+          --fill: rgba(255, 255, 255, 0.08);
+          --track: rgba(255, 255, 255, 0.16);
+          --accent: #7c74ff;
+          --accent-soft: rgba(124, 116, 255, 0.22);
+          --brand: #7c74ff;
+          --toolbar-line: rgba(255, 255, 255, 0.1);
+          --tab-active: rgba(255, 255, 255, 0.13);
+          --shadow-card: none;
+          --window-bg: rgba(29, 30, 34, 0.84);
+        }
+      }
+
+      * {
+        box-sizing: border-box;
+      }
+
+      /* The `hidden` attribute must win over our explicit display rules below
+         (.preset-view / .preset-name / .pbtn all set display). */
+      [hidden] {
+        display: none !important;
+      }
+
+      html,
+      body {
+        width: 100%;
+        height: 100%;
+        margin: 0;
+      }
+
+      body {
+        display: flex;
+        flex-direction: column;
+        min-height: 0;
+      }
+
+      /* ---------- Toolbar / tabs ---------- */
+
+      .toolbar {
+        flex: none;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        height: 52px;
+        padding: 0 16px;
+        border-bottom: 1px solid var(--toolbar-line);
+        -webkit-app-region: drag;
+      }
+
+      .tabs {
+        display: flex;
+        gap: 2px;
+        -webkit-app-region: no-drag;
+      }
+
+      .tab {
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        gap: 2px;
+        width: 64px;
+        padding: 5px 4px 4px;
+        border: 0;
+        border-radius: 7px;
+        background: transparent;
+        color: var(--ink-soft);
+        font: inherit;
+        font-size: 10.5px;
+        font-weight: 530;
+        cursor: pointer;
+        transition: background 120ms ease, color 120ms ease;
+      }
+
+      .tab svg {
+        width: 18px;
+        height: 18px;
+      }
+
+      .tab:hover {
+        background: var(--fill);
+      }
+
+      .tab.is-active {
+        background: var(--tab-active);
+        color: var(--ink);
+      }
+
+      /* ---------- Preset bar ---------- */
+
+      .preset-bar {
+        flex: none;
+        padding: 8px 14px;
+        border-bottom: 1px solid var(--toolbar-line);
+      }
+
+      .preset-view {
+        display: flex;
+        align-items: center;
+        gap: 8px;
+      }
+
+      .preset-pick {
+        flex: 1;
+        min-width: 0;
+        display: flex;
+        align-items: center;
+        gap: 8px;
+        color: var(--ink-muted);
+      }
+
+      .preset-pick svg {
+        width: 15px;
+        height: 15px;
+        flex: none;
+      }
+
+      #preset-select {
+        flex: 1;
+        width: 100%;
+        min-width: 0;
+      }
+
+      .preset-actions {
+        flex: none;
+        display: flex;
+        gap: 6px;
+      }
+
+      .pbtn {
+        display: inline-flex;
+        align-items: center;
+        gap: 5px;
+        height: 28px;
+        padding: 0 11px;
+        border: 1px solid var(--line-strong);
+        border-radius: 8px;
+        background: var(--card-strong);
+        color: var(--ink);
+        font: inherit;
+        font-size: 12.5px;
+        font-weight: 550;
+        cursor: pointer;
+        transition: background 120ms ease, transform 90ms ease;
+      }
+
+      .pbtn svg {
+        width: 14px;
+        height: 14px;
+      }
+
+      .pbtn:hover {
+        background: var(--fill);
+      }
+
+      .pbtn:active {
+        transform: translateY(1px);
+      }
+
+      .pbtn.primary {
+        border-color: transparent;
+        background: var(--accent);
+        color: #ffffff;
+      }
+
+      .pbtn.primary:hover {
+        background: var(--accent);
+        filter: brightness(1.06);
+      }
+
+      .pbtn.icon {
+        padding: 0 8px;
+        color: var(--ink-soft);
+      }
+
+      .preset-name {
+        display: flex;
+        align-items: center;
+        gap: 8px;
+      }
+
+      #preset-name-input {
+        flex: 1;
+        min-width: 0;
+        height: 28px;
+        padding: 0 10px;
+        border: 1px solid var(--line-strong);
+        border-radius: 8px;
+        background: var(--card-strong);
+        color: var(--ink);
+        font: inherit;
+        font-size: 13px;
+      }
+
+      #preset-name-input:focus-visible {
+        outline: none;
+        border-color: var(--accent);
+        box-shadow: 0 0 0 3px var(--accent-soft);
+      }
+
+      /* ---------- Scroll body ---------- */
+
+      .content {
+        flex: 1;
+        min-height: 0;
+        overflow-y: auto;
+        padding: 16px 18px 20px;
+        display: grid;
+        gap: 14px;
+        align-content: start;
+      }
+
+      /* ---------- Live preview ---------- */
+
+      .preview {
+        padding: 12px;
+        border-radius: 12px;
+        background: var(--card);
+        border: 1px solid var(--line);
+        box-shadow: var(--shadow-card);
+      }
+
+      body[data-tab="export"] .preview {
+        display: none;
+      }
+
+      .preview-bar {
+        display: flex;
+        align-items: center;
+        gap: 10px;
+        height: 36px;
+        padding: 0 12px;
+        border-radius: 9px;
+        background: #fbfbfa;
+        border: 1px solid var(--line-strong);
+        box-shadow: 0 6px 18px -10px rgba(15, 18, 26, 0.4);
+        color: var(--ink-soft);
+        overflow: hidden;
+      }
+
+      .preview-dots {
+        display: flex;
+        gap: 6px;
+        flex: none;
+      }
+
+      .preview-dots i {
+        width: 9px;
+        height: 9px;
+        border-radius: 999px;
+        box-shadow: inset 0 0 0 0.5px rgba(0, 0, 0, 0.12);
+      }
+
+      .preview-dots i:nth-child(1) {
+        background: #ff5f57;
+      }
+      .preview-dots i:nth-child(2) {
+        background: #febc2e;
+      }
+      .preview-dots i:nth-child(3) {
+        background: #28c840;
+      }
+
+      .preview-address {
+        flex: 1;
+        min-width: 0;
+        height: 22px;
+        margin: 0 auto;
+        max-width: 60%;
+        border-radius: 7px;
+        background: rgba(20, 22, 28, 0.06);
+        border: 1px solid rgba(20, 22, 28, 0.05);
+      }
+
+      .preview-cam {
+        flex: none;
+        width: 26px;
+        height: 22px;
+        border-radius: 7px;
+        background: var(--brand);
+        box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.2);
+      }
+
+      .preview-bar.is-dark {
+        color: rgba(255, 255, 255, 0.7);
+      }
+
+      .preview-bar.is-dark .preview-address {
+        background: rgba(255, 255, 255, 0.14);
+        border-color: rgba(255, 255, 255, 0.12);
+      }
+
+      /* ---------- Panels ---------- */
+
+      .panel {
+        display: none;
+        gap: 14px;
+      }
+
+      .panel.is-active {
+        display: grid;
+      }
+
+      /* ---------- Sections (grouped list) ---------- */
+
+      .section {
+        display: grid;
+        background: var(--card);
+        border: 1px solid var(--line);
+        border-radius: 12px;
+        box-shadow: var(--shadow-card);
+        overflow: hidden;
+      }
+
+      .section-title {
+        padding: 10px 14px 5px;
+        color: var(--ink-muted);
+        font-size: 11px;
+        font-weight: 600;
+        letter-spacing: 0.03em;
+        text-transform: uppercase;
+      }
+
+      .row {
+        display: flex;
+        align-items: center;
+        gap: 14px;
+        justify-content: space-between;
+        min-height: 40px;
+        padding: 7px 14px;
+        color: var(--ink);
+        font-size: 13px;
+        font-weight: 500;
+      }
+
+      .row + .row {
+        border-top: 1px solid var(--line);
+      }
+
+      .row-label {
+        flex: none;
+      }
+
+      /* ---------- Range ---------- */
+
+      input[type="range"] {
+        -webkit-appearance: none;
+        appearance: none;
+        flex: 1;
+        min-width: 0;
+        max-width: 220px;
+        height: 5px;
+        border-radius: 999px;
+        background: var(--track);
+        outline: none;
+      }
+
+      input[type="range"]::-webkit-slider-thumb {
+        -webkit-appearance: none;
+        appearance: none;
+        width: 16px;
+        height: 16px;
+        border-radius: 999px;
+        background: #ffffff;
+        border: 0.5px solid rgba(20, 22, 28, 0.18);
+        box-shadow: 0 1px 3px rgba(16, 18, 24, 0.3);
+        cursor: pointer;
+        transition: transform 90ms ease;
+      }
+
+      input[type="range"]:active::-webkit-slider-thumb {
+        transform: scale(1.12);
+      }
+
+      input[type="range"]:disabled {
+        opacity: 0.5;
+      }
+
+      /* ---------- Select ---------- */
+
+      select {
+        flex: none;
+        height: 28px;
+        min-width: 92px;
+        padding: 0 26px 0 10px;
+        border: 1px solid var(--line-strong);
+        border-radius: 7px;
+        background: var(--card-strong)
+          url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='10' height='10' viewBox='0 0 10 10'%3E%3Cpath d='M2.5 4L5 6.5 7.5 4' fill='none' stroke='%238a8c93' stroke-width='1.4' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E")
+          no-repeat right 9px center;
+        -webkit-appearance: none;
+        appearance: none;
+        color: var(--ink);
+        font: inherit;
+        font-size: 12.5px;
+        font-weight: 540;
+        cursor: pointer;
+      }
+
+      select:focus-visible {
+        outline: none;
+        border-color: var(--accent);
+        box-shadow: 0 0 0 3px var(--accent-soft);
+      }
+
+      /* ---------- Segmented control ---------- */
+
+      .seg {
+        display: inline-flex;
+        gap: 2px;
+        padding: 2px;
+        border-radius: 8px;
+        background: var(--fill);
+        flex: none;
+      }
+
+      .seg button {
+        border: 0;
+        border-radius: 6px;
+        padding: 4px 14px;
+        background: transparent;
+        color: var(--ink-soft);
+        font: inherit;
+        font-size: 12px;
+        font-weight: 540;
+        cursor: pointer;
+        transition: background 120ms ease, color 120ms ease;
+      }
+
+      .seg button.is-active {
+        background: var(--card-strong);
+        color: var(--ink);
+        box-shadow: var(--shadow-card);
+      }
+
+      /* ---------- Backdrop gallery ---------- */
+
+      .backdrop-grid {
+        display: grid;
+        grid-template-columns: repeat(5, 1fr);
+        gap: 8px;
+        padding: 8px 14px 14px;
+      }
+
+      .backdrop-swatch {
+        height: 38px;
+        padding: 0;
+        border: 1px solid var(--line-strong);
+        border-radius: 8px;
+        background-size: cover;
+        background-position: center;
+        cursor: pointer;
+        transition: transform 90ms ease;
+      }
+
+      .backdrop-swatch:active {
+        transform: scale(0.95);
+      }
+
+      .backdrop-swatch.is-active {
+        box-shadow:
+          0 0 0 2px var(--card-strong),
+          0 0 0 4px var(--accent);
+      }
+
+      .backdrop-swatch.none {
+        background:
+          linear-gradient(
+            45deg,
+            rgba(20, 22, 28, 0.13) 25%,
+            transparent 25%,
+            transparent 75%,
+            rgba(20, 22, 28, 0.13) 75%
+          ),
+          #ffffff;
+        background-size: 10px 10px;
+      }
+
+      .backdrop-swatch.custom-photo {
+        background: var(--fill);
+        background-size: cover;
+        background-position: center;
+      }
+
+      /* Always-present button to add / replace the custom photo. */
+      .backdrop-swatch.add-photo {
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        background: var(--fill);
+        color: var(--ink-muted);
+        border-style: dashed;
+      }
+
+      .backdrop-swatch.add-photo::before {
+        content: "+";
+        font-size: 22px;
+        font-weight: 400;
+        line-height: 1;
+      }
+
+      /* ---------- Color swatch ---------- */
+
+      .swatch {
+        position: relative;
+        flex: none;
+        width: 28px;
+        height: 28px;
+        border-radius: 8px;
+        overflow: hidden;
+        border: 1px solid var(--line-strong);
+        box-shadow: inset 0 0 0 2px var(--card-strong);
+      }
+
+      input[type="color"] {
+        position: absolute;
+        inset: -4px;
+        width: calc(100% + 8px);
+        height: calc(100% + 8px);
+        padding: 0;
+        border: 0;
+        background: transparent;
+        cursor: pointer;
+      }
+
+      input[type="color"]::-webkit-color-swatch-wrapper {
+        padding: 0;
+      }
+
+      input[type="color"]::-webkit-color-swatch {
+        border: 0;
+        border-radius: 0;
+      }
+
+      output {
+        flex: none;
+        min-width: 46px;
+        color: var(--ink-muted);
+        font-size: 12px;
+        font-weight: 540;
+        font-variant-numeric: tabular-nums;
+        text-align: right;
+      }
+
+      /* ---------- Toggle switch ---------- */
+
+      .switch {
+        position: relative;
+        display: inline-flex;
+        align-items: center;
+        flex: none;
+        cursor: pointer;
+      }
+
+      .switch input {
+        position: absolute;
+        opacity: 0;
+        width: 0;
+        height: 0;
+      }
+
+      .switch-track {
+        position: relative;
+        width: 38px;
+        height: 23px;
+        border-radius: 999px;
+        background: var(--track);
+        transition: background 160ms ease;
+      }
+
+      .switch-thumb {
+        position: absolute;
+        top: 2.5px;
+        left: 2.5px;
+        width: 18px;
+        height: 18px;
+        border-radius: 999px;
+        background: #ffffff;
+        box-shadow: 0 1px 3px rgba(16, 18, 24, 0.3);
+        transition: transform 170ms cubic-bezier(0.3, 0.9, 0.3, 1);
+      }
+
+      .switch input:checked + .switch-track {
+        background: var(--accent);
+      }
+
+      .switch input:checked + .switch-track .switch-thumb {
+        transform: translateX(15px);
+      }
+
+      .switch input:focus-visible + .switch-track {
+        box-shadow: 0 0 0 3px var(--accent-soft);
+      }
+
+      .label-stack {
+        display: grid;
+        gap: 1px;
+      }
+
+      .label-stack small {
+        color: var(--ink-muted);
+        font-size: 11.5px;
+        font-weight: 450;
+      }
+
+      .label-stack .title-line {
+        display: flex;
+        align-items: center;
+        gap: 7px;
+        font-weight: 560;
+      }
+
+      /* ---------- Auto-match mode ---------- */
+
+      .mode-section {
+        border-color: var(--accent-soft);
+      }
+
+      .mode-badge {
+        display: inline-flex;
+        align-items: center;
+        height: 16px;
+        padding: 0 7px;
+        border-radius: 999px;
+        background: var(--accent);
+        color: #ffffff;
+        font-size: 9px;
+        font-weight: 680;
+        letter-spacing: 0.05em;
+        text-transform: uppercase;
+      }
+
+      .adaptive-row {
+        transition: opacity 160ms ease;
+      }
+
+      body.is-auto .adaptive-row {
+        opacity: 0.45;
+        pointer-events: none;
+      }
+
+      body.is-auto .adaptive-row::after {
+        content: "Auto";
+        color: var(--accent);
+        font-size: 11.5px;
+        font-weight: 600;
+      }
+
+      body.is-auto .adaptive-row > output,
+      body.is-auto .adaptive-row > .swatch,
+      body.is-auto .adaptive-row > .seg {
+        display: none;
+      }
+
+      /* ---------- Footer ---------- */
+
+      .footer {
+        flex: none;
+        display: flex;
+        justify-content: flex-end;
+        padding: 10px 18px;
+        border-top: 1px solid var(--toolbar-line);
+      }
+
+      button.text-button {
+        height: 30px;
+        padding: 0 14px;
+        border: 1px solid var(--line-strong);
+        border-radius: 8px;
+        background: var(--card-strong);
+        color: var(--ink);
+        font: inherit;
+        font-size: 12.5px;
+        font-weight: 560;
+        cursor: pointer;
+        transition: background 120ms ease, transform 90ms ease;
+      }
+
+      button.text-button:hover {
+        background: var(--fill);
+      }
+
+      button.text-button:active {
+        transform: translateY(1px);
+      }
+    </style>
+  </head>
+  <body data-tab="frame">
+    <nav class="toolbar">
+      <div class="tabs" role="tablist">
+        <button type="button" class="tab is-active" data-tab="frame" role="tab" aria-selected="true">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round">
+            <rect x="3" y="5" width="18" height="14" rx="2.5" />
+            <path d="M3 9.5h18" />
+          </svg>
+          Frame
+        </button>
+        <button type="button" class="tab" data-tab="canvas" role="tab" aria-selected="false">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round">
+            <rect x="3" y="4" width="18" height="16" rx="2.5" />
+            <circle cx="8.5" cy="9.5" r="1.5" />
+            <path d="M5 17l4.5-4.5 3 3L17 10l2 2" />
+          </svg>
+          Canvas
+        </button>
+        <button type="button" class="tab" data-tab="export" role="tab" aria-selected="false">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round">
+            <path d="M12 15V4" />
+            <path d="M8 8l4-4 4 4" />
+            <path d="M5 13v5a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2v-5" />
+          </svg>
+          Export
+        </button>
+      </div>
+    </nav>
+
+    <div class="preset-bar">
+      <div class="preset-view" id="preset-view">
+        <div class="preset-pick">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round">
+            <path d="M12 3l8 4.5-8 4.5-8-4.5L12 3z" />
+            <path d="M4 12l8 4.5 8-4.5" />
+          </svg>
+          <select id="preset-select" aria-label="Preset"></select>
+        </div>
+        <div class="preset-actions">
+          <button id="preset-delete" class="pbtn icon" type="button" title="Delete preset" hidden>
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round">
+              <path d="M4 7h16" />
+              <path d="M9 7V5a1 1 0 0 1 1-1h4a1 1 0 0 1 1 1v2" />
+              <path d="M6 7l1 12a2 2 0 0 0 2 2h6a2 2 0 0 0 2-2l1-12" />
+            </svg>
+          </button>
+          <button id="preset-save" class="pbtn primary" type="button" title="Save current settings as a preset">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+              <path d="M12 5v14" />
+              <path d="M5 12h14" />
+            </svg>
+            Save
+          </button>
+        </div>
+      </div>
+      <form class="preset-name" id="preset-name-form" hidden>
+        <input
+          id="preset-name-input"
+          type="text"
+          placeholder="Preset name"
+          maxlength="40"
+          autocomplete="off"
+          spellcheck="false"
+        />
+        <button type="submit" class="pbtn primary">Save</button>
+        <button type="button" class="pbtn" id="preset-name-cancel">Cancel</button>
+      </form>
+    </div>
+
+    <div class="content">
+      <div class="preview">
+        <div class="preview-bar" id="preview-bar">
+          <div class="preview-dots"><i></i><i></i><i></i></div>
+          <div class="preview-address" id="preview-address"></div>
+          <div class="preview-cam"></div>
+        </div>
+      </div>
+
+      <form id="settings-form">
+        <!-- ---------- Frame ---------- -->
+        <section class="panel is-active" data-panel="frame">
+          <div class="section mode-section">
+            <label class="row">
+              <span class="label-stack">
+                <span class="title-line">Auto-match site<span class="mode-badge">Beta</span></span>
+                <small>Shape the frame from the open page — color &amp; corner radius</small>
+              </span>
+              <span class="switch">
+                <input id="autoMatch" name="autoMatch" type="checkbox" />
+                <span class="switch-track"><span class="switch-thumb"></span></span>
+              </span>
+            </label>
+          </div>
+
+          <div class="section">
+            <div class="section-title">Bar</div>
+
+            <div class="row adaptive-row">
+              <span class="row-label">Theme</span>
+              <div class="seg" id="theme-seg">
+                <button type="button" data-theme="light">Light</button>
+                <button type="button" data-theme="dark">Dark</button>
+              </div>
+            </div>
+
+            <label class="row adaptive-row">
+              <span class="row-label">Bar color</span>
+              <span class="swatch">
+                <input id="barColor" name="barColor" type="color" />
+              </span>
+            </label>
+
+            <label class="row">
+              <span class="row-label">Height</span>
+              <input id="barHeight" name="barHeight" type="range" min="44" max="92" step="1" />
+              <output for="barHeight" data-unit="px"></output>
+            </label>
+          </div>
+
+          <div class="section">
+            <div class="section-title">Address field</div>
+
+            <label class="row">
+              <span class="row-label">Width</span>
+              <input id="addressWidth" name="addressWidth" type="range" min="280" max="760" step="10" />
+              <output for="addressWidth" data-unit="px"></output>
+            </label>
+
+            <label class="row adaptive-row">
+              <span class="row-label">Corner radius</span>
+              <input id="addressRadius" name="addressRadius" type="range" min="4" max="22" step="1" />
+              <output for="addressRadius" data-unit="px"></output>
+            </label>
+          </div>
+        </section>
+
+        <!-- ---------- Canvas ---------- -->
+        <section class="panel" data-panel="canvas">
+          <div class="section">
+            <div class="section-title">Backdrop</div>
+            <div class="backdrop-grid" id="backdrop-grid"></div>
+            <input type="file" id="backdrop-file" accept="image/*" hidden />
+          </div>
+
+          <div class="section">
+            <div class="section-title">Page &amp; canvas</div>
+
+            <label class="row adaptive-row">
+              <span class="row-label">Canvas color</span>
+              <span class="swatch">
+                <input id="canvasColor" name="canvasColor" type="color" />
+              </span>
+            </label>
+
+            <label class="row adaptive-row">
+              <span class="row-label">Page radius</span>
+              <input id="frameRadius" name="frameRadius" type="range" min="0" max="36" step="1" />
+              <output for="frameRadius" data-unit="px"></output>
+            </label>
+
+            <label class="row">
+              <span class="row-label">Padding</span>
+              <input id="canvasPadding" name="canvasPadding" type="range" min="0" max="48" step="1" />
+              <output for="canvasPadding" data-unit="px"></output>
+            </label>
+
+            <label class="row">
+              <span class="row-label">Shadow</span>
+              <input id="shadowOpacity" name="shadowOpacity" type="range" min="0" max="40" step="1" />
+              <output for="shadowOpacity" data-unit="%"></output>
+            </label>
+          </div>
+        </section>
+
+        <!-- ---------- Export ---------- -->
+        <section class="panel" data-panel="export">
+          <div class="section">
+            <div class="section-title">Export</div>
+
+            <label class="row">
+              <span class="row-label">Scale</span>
+              <select id="exportScale" name="exportScale">
+                <option value="1">@1×</option>
+                <option value="2">@2×</option>
+                <option value="3">@3×</option>
+              </select>
+            </label>
+
+            <label class="row">
+              <span class="row-label">Format</span>
+              <select id="exportFormat" name="exportFormat">
+                <option value="png">PNG</option>
+                <option value="jpeg">JPEG</option>
+                <option value="webp">WebP</option>
+              </select>
+            </label>
+
+            <label class="row" id="quality-row">
+              <span class="row-label">Quality</span>
+              <input id="exportQuality" name="exportQuality" type="range" min="40" max="100" step="1" />
+              <output for="exportQuality" data-unit="%"></output>
+            </label>
+          </div>
+
+          <div class="section">
+            <div class="section-title">Capture</div>
+
+            <label class="row">
+              <span class="label-stack">
+                Clean toolbar
+                <small>Hide controls while shooting</small>
+              </span>
+              <span class="switch">
+                <input id="hideToolsInCapture" name="hideToolsInCapture" type="checkbox" />
+                <span class="switch-track"><span class="switch-thumb"></span></span>
+              </span>
+            </label>
+
+            <label class="row">
+              <span class="label-stack">
+                Hide scrollbars
+                <small>Cleaner edges in the shot</small>
+              </span>
+              <span class="switch">
+                <input id="hideScrollbarsInCapture" name="hideScrollbarsInCapture" type="checkbox" />
+                <span class="switch-track"><span class="switch-thumb"></span></span>
+              </span>
+            </label>
+          </div>
+        </section>
+      </form>
+    </div>
+
+    <footer class="footer">
+      <button id="reset" class="text-button" type="button">Reset to defaults</button>
+    </footer>
+
+    <script>
+      const bridge = window.settingsBridge;
+      const form = document.querySelector("#settings-form");
+      const resetButton = document.querySelector("#reset");
+      const previewBar = document.querySelector("#preview-bar");
+      const previewAddress = document.querySelector("#preview-address");
+      const fields = [...form.elements].filter((element) => element.name);
+      let isRendering = false;
+      let currentSettings = {};
+
+      // ---------- Tabs ----------
+      const tabButtons = [...document.querySelectorAll(".tab")];
+      const panels = [...document.querySelectorAll(".panel")];
+
+      function activateTab(name) {
+        document.body.dataset.tab = name;
+        for (const button of tabButtons) {
+          const active = button.dataset.tab === name;
+          button.classList.toggle("is-active", active);
+          button.setAttribute("aria-selected", String(active));
+        }
+        for (const panel of panels) {
+          panel.classList.toggle("is-active", panel.dataset.panel === name);
+        }
+      }
+
+      for (const button of tabButtons) {
+        button.addEventListener("click", () => activateTab(button.dataset.tab));
+      }
+
+      // ---------- Presets ----------
+      // A preset is a named snapshot of every appearance field. Save the current
+      // setup, switch between saved setups from the dropdown, or delete one.
+      const PRESET_KEYS = [
+        "canvasColor", "barColor", "barHeight", "frameRadius", "addressRadius",
+        "addressWidth", "canvasPadding", "shadowOpacity", "hideToolsInCapture",
+        "hideScrollbarsInCapture", "autoMatch", "backdrop", "customBackdrop",
+        "exportScale", "exportFormat", "exportQuality"
+      ];
+      // Mirrors DEFAULT_APPEARANCE in electron/main.cjs so the dropdown can show
+      // a built-in, always-available "Default" entry.
+      const DEFAULTS = {
+        canvasColor: "#ffffff", barColor: "#fbfbfa", barHeight: 56, frameRadius: 0,
+        addressRadius: 11, addressWidth: 460, canvasPadding: 0, shadowOpacity: 0,
+        hideToolsInCapture: true, hideScrollbarsInCapture: true, autoMatch: false,
+        backdrop: "none", customBackdrop: "", exportScale: 2, exportFormat: "png",
+        exportQuality: 92
+      };
+      const DEFAULT_PRESET_ID = "__default__";
+      let presets = [];
+      const presetSelect = document.querySelector("#preset-select");
+      const presetSave = document.querySelector("#preset-save");
+      const presetDelete = document.querySelector("#preset-delete");
+      const presetView = document.querySelector("#preset-view");
+      const presetNameForm = document.querySelector("#preset-name-form");
+      const presetNameInput = document.querySelector("#preset-name-input");
+      const presetNameCancel = document.querySelector("#preset-name-cancel");
+
+      function presetMatches(preset) {
+        return PRESET_KEYS.every((key) => String(currentSettings[key]) === String(preset.settings[key]));
+      }
+
+      function matchesDefaults() {
+        return PRESET_KEYS.every((key) => String(currentSettings[key]) === String(DEFAULTS[key]));
+      }
+
+      function rebuildPresetOptions() {
+        const custom = document.createElement("option");
+        custom.value = "";
+        custom.textContent = "Custom (unsaved)";
+        const def = document.createElement("option");
+        def.value = DEFAULT_PRESET_ID;
+        def.textContent = "Default";
+        presetSelect.replaceChildren(custom, def);
+        for (const preset of presets) {
+          const option = document.createElement("option");
+          option.value = preset.id;
+          option.textContent = preset.name;
+          presetSelect.appendChild(option);
+        }
+        syncPresetSelection();
+      }
+
+      // Highlight whichever saved preset matches the live settings (if any), and
+      // only offer delete when a real preset is selected.
+      function syncPresetSelection() {
+        const match = presets.find(presetMatches);
+        presetSelect.value = match ? match.id : matchesDefaults() ? DEFAULT_PRESET_ID : "";
+        presetDelete.hidden = !match;
+      }
+
+      function showNameForm(show) {
+        presetView.hidden = show;
+        presetNameForm.hidden = !show;
+        if (show) {
+          presetNameInput.value = "";
+          presetNameInput.focus();
+        }
+      }
+
+      async function refreshPresets() {
+        presets = await bridge.listPresets();
+        rebuildPresetOptions();
+      }
+
+      presetSelect.addEventListener("change", async () => {
+        const id = presetSelect.value;
+        if (!id) {
+          syncPresetSelection();
+          return;
+        }
+        if (id === DEFAULT_PRESET_ID) {
+          render(await bridge.resetAll());
+          return;
+        }
+        render(await bridge.applyPreset(id));
+      });
+
+      presetDelete.addEventListener("click", async () => {
+        const id = presetSelect.value;
+        if (!id) {
+          return;
+        }
+        presets = await bridge.deletePreset(id);
+        rebuildPresetOptions();
+      });
+
+      presetSave.addEventListener("click", () => showNameForm(true));
+      presetNameCancel.addEventListener("click", () => showNameForm(false));
+
+      presetNameForm.addEventListener("submit", async (event) => {
+        event.preventDefault();
+        const name = presetNameInput.value.trim();
+        if (!name) {
+          presetNameInput.focus();
+          return;
+        }
+        const result = await bridge.savePreset(name);
+        presets = result.presets;
+        rebuildPresetOptions();
+        presetSelect.value = result.savedId;
+        presetDelete.hidden = false;
+        showNameForm(false);
+      });
+
+      presetNameInput.addEventListener("keydown", (event) => {
+        if (event.key === "Escape") {
+          showNameForm(false);
+        }
+      });
+
+      // Backdrop presets — css matches src/main.ts BACKDROPS; padding is the
+      // matte width applied when the preset is chosen.
+      const BACKDROPS = [
+        { id: "none", label: "None", css: "", padding: 0 },
+        { id: "snow", label: "Snow", css: "#f4f4f2", padding: 40 },
+        { id: "graphite", label: "Graphite", css: "#1f2024", padding: 40 },
+        { id: "indigo", label: "Indigo", css: "linear-gradient(135deg, #6366f1 0%, #4338ca 100%)", padding: 48 },
+        { id: "sunset", label: "Sunset", css: "linear-gradient(135deg, #ff7e5f 0%, #feb47b 100%)", padding: 48 },
+        { id: "ocean", label: "Ocean", css: "linear-gradient(135deg, #2193b0 0%, #6dd5ed 100%)", padding: 48 },
+        { id: "grape", label: "Grape", css: "linear-gradient(135deg, #654ea3 0%, #eaafc8 100%)", padding: 48 },
+        { id: "mint", label: "Mint", css: "linear-gradient(135deg, #11998e 0%, #38ef7d 100%)", padding: 48 },
+        { id: "dusk", label: "Dusk", css: "linear-gradient(160deg, #0f2027 0%, #203a43 50%, #2c5364 100%)", padding: 48 },
+        { id: "custom", label: "Custom photo", css: "", padding: 48 }
+      ];
+      const backdropGrid = document.querySelector("#backdrop-grid");
+      const backdropFile = document.querySelector("#backdrop-file");
+
+      for (const preset of BACKDROPS) {
+        const swatch = document.createElement("button");
+        swatch.type = "button";
+        swatch.className =
+          "backdrop-swatch" +
+          (preset.id === "none" ? " none" : "") +
+          (preset.id === "custom" ? " custom-photo" : "");
+        swatch.dataset.backdrop = preset.id;
+        swatch.title = preset.label;
+        if (preset.css) {
+          swatch.style.background = preset.css;
+        }
+
+        if (preset.id === "custom") {
+          // The photo swatch only appears once a photo exists; clicking it just
+          // re-activates that photo. Adding/replacing is done from the + button.
+          swatch.addEventListener("click", async () => {
+            if (currentSettings.customBackdrop) {
+              render(await bridge.update({ backdrop: "custom", canvasPadding: preset.padding }));
+            } else {
+              backdropFile.click();
+            }
+          });
+        } else {
+          swatch.addEventListener("click", async () => {
+            render(await bridge.update({ backdrop: preset.id, canvasPadding: preset.padding }));
+          });
+        }
+
+        backdropGrid.appendChild(swatch);
+      }
+
+      // A dedicated, always-visible button to add (or replace) the custom photo,
+      // so the action never disappears once a photo has been chosen.
+      const addPhotoButton = document.createElement("button");
+      addPhotoButton.type = "button";
+      addPhotoButton.className = "backdrop-swatch add-photo";
+      addPhotoButton.title = "Add photo";
+      addPhotoButton.addEventListener("click", () => backdropFile.click());
+      backdropGrid.appendChild(addPhotoButton);
+
+      // Downscale the chosen image to a reasonable size and hand it over as a
+      // data URL (data URLs keep the export canvas un-tainted).
+      function fileToBackdropDataUrl(file) {
+        return new Promise((resolve, reject) => {
+          const reader = new FileReader();
+          reader.onerror = () => reject(new Error("read failed"));
+          reader.onload = () => {
+            const image = new Image();
+            image.onerror = () => reject(new Error("decode failed"));
+            image.onload = () => {
+              const max = 2400;
+              const scale = Math.min(1, max / Math.max(image.width, image.height));
+              const width = Math.max(1, Math.round(image.width * scale));
+              const height = Math.max(1, Math.round(image.height * scale));
+              const canvas = document.createElement("canvas");
+              canvas.width = width;
+              canvas.height = height;
+              canvas.getContext("2d").drawImage(image, 0, 0, width, height);
+              resolve(canvas.toDataURL("image/jpeg", 0.85));
+            };
+            image.src = reader.result;
+          };
+          reader.readAsDataURL(file);
+        });
+      }
+
+      backdropFile.addEventListener("change", async () => {
+        const file = backdropFile.files && backdropFile.files[0];
+        backdropFile.value = "";
+        if (!file) {
+          return;
+        }
+        try {
+          const dataUrl = await fileToBackdropDataUrl(file);
+          render(await bridge.update({ backdrop: "custom", canvasPadding: 48, customBackdrop: dataUrl }));
+        } catch {
+          // Couldn't read/decode the image — leave the backdrop unchanged.
+        }
+      });
+
+      function markBackdrop(id) {
+        for (const swatch of backdropGrid.children) {
+          swatch.classList.toggle("is-active", swatch.dataset.backdrop === (id || "none"));
+          if (swatch.dataset.backdrop === "custom") {
+            const url = currentSettings.customBackdrop;
+            swatch.classList.toggle("has-image", Boolean(url));
+            swatch.style.backgroundImage = url ? `url("${url}")` : "";
+            // The photo swatch only appears once a photo has been added.
+            swatch.style.display = url ? "" : "none";
+          }
+        }
+      }
+
+      // Manual light/dark chrome theme — applies a curated bar + canvas palette
+      // (independent of auto-match, which would override the bar anyway).
+      const THEME_PRESETS = {
+        light: { barColor: "#fbfbfa", canvasColor: "#ffffff" },
+        dark: { barColor: "#1d1e22", canvasColor: "#16181b" }
+      };
+      const themeSeg = document.querySelector("#theme-seg");
+
+      for (const button of themeSeg.querySelectorAll("button")) {
+        button.addEventListener("click", async () => {
+          render(await bridge.update(THEME_PRESETS[button.dataset.theme]));
+        });
+      }
+
+      function markTheme(settings) {
+        const bar = String(settings.barColor || "").toLowerCase();
+        const active =
+          bar === THEME_PRESETS.light.barColor ? "light" : bar === THEME_PRESETS.dark.barColor ? "dark" : null;
+        for (const button of themeSeg.querySelectorAll("button")) {
+          button.classList.toggle("is-active", button.dataset.theme === active);
+        }
+      }
+
+      function luminance(hex) {
+        const match = /^#?([0-9a-f]{6})$/i.exec(String(hex).trim());
+        if (!match) {
+          return 1;
+        }
+        const value = match[1];
+        const r = parseInt(value.slice(0, 2), 16);
+        const g = parseInt(value.slice(2, 4), 16);
+        const b = parseInt(value.slice(4, 6), 16);
+        return (0.2126 * r + 0.7152 * g + 0.0722 * b) / 255;
+      }
+
+      function paintRange(field) {
+        if (field.type !== "range") {
+          return;
+        }
+        const min = Number(field.min || 0);
+        const max = Number(field.max || 100);
+        const pct = ((Number(field.value) - min) / (max - min)) * 100;
+        field.style.background = `linear-gradient(to right, var(--accent) 0%, var(--accent) ${pct}%, var(--track) ${pct}%, var(--track) 100%)`;
+      }
+
+      function paintPreview(settings) {
+        previewBar.style.background = settings.barColor;
+        previewBar.classList.toggle("is-dark", luminance(settings.barColor) < 0.5);
+        previewAddress.style.borderRadius = `${settings.addressRadius}px`;
+        const widthPct = Math.round(((settings.addressWidth - 280) / (760 - 280)) * 40 + 30);
+        previewAddress.style.maxWidth = `${widthPct}%`;
+      }
+
+      function render(settings) {
+        isRendering = true;
+        currentSettings = settings;
+
+        for (const field of fields) {
+          const value = settings[field.name];
+          if (value === undefined) {
+            continue;
+          }
+
+          if (field.type === "checkbox") {
+            field.checked = Boolean(value);
+          } else {
+            field.value = String(value);
+          }
+
+          paintRange(field);
+
+          const output = document.querySelector(`output[for="${field.name}"]`);
+          if (output) {
+            const unit = output.dataset.unit ? ` ${output.dataset.unit}` : "";
+            output.textContent =
+              field.type === "color" ? String(value).toUpperCase() : `${value}${unit}`;
+          }
+        }
+
+        const auto = Boolean(settings.autoMatch);
+        document.body.classList.toggle("is-auto", auto);
+        for (const name of ["barColor", "canvasColor", "addressRadius", "frameRadius"]) {
+          const el = form.elements[name];
+          if (el) {
+            el.disabled = auto;
+          }
+        }
+
+        // Quality only matters for the lossy formats.
+        const qualityRow = document.querySelector("#quality-row");
+        if (qualityRow) {
+          qualityRow.style.display = settings.exportFormat === "png" ? "none" : "";
+        }
+
+        markBackdrop(settings.backdrop);
+        markTheme(settings);
+
+        paintPreview(settings);
+        syncPresetSelection();
+        isRendering = false;
+      }
+
+      function collect() {
+        const result = {};
+        for (const field of fields) {
+          if (field.type === "checkbox") {
+            result[field.name] = field.checked;
+          } else if (field.type === "range") {
+            result[field.name] = Number(field.value);
+          } else {
+            result[field.name] = field.value;
+          }
+        }
+        return result;
+      }
+
+      form.addEventListener("input", async (event) => {
+        if (event.target && event.target.type === "range") {
+          paintRange(event.target);
+        }
+        if (isRendering) {
+          return;
+        }
+        render(await bridge.update(collect()));
+      });
+
+      resetButton.addEventListener("click", async () => {
+        render(await bridge.resetAll());
+      });
+
+      bridge.onChanged((settings) => render(settings));
+      bridge.get().then((settings) => render(settings));
+      refreshPresets();
+    </script>
+  </body>
+</html>

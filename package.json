@@ -1,0 +1,73 @@
+{
+  "name": "clean-browser",
+  "version": "0.1.0",
+  "description": "A Chromium-based minimal browser for clean website screenshots.",
+  "author": "Görkem YILDIZ",
+  "license": "MIT",
+  "private": true,
+  "type": "module",
+  "main": "electron/main.cjs",
+  "scripts": {
+    "dev": "vite --host 127.0.0.1 --port 1420",
+    "build": "tsc && vite build",
+    "electron:dev": "concurrently -k \"npm run dev\" \"wait-on http://127.0.0.1:1420 && CLEAN_BROWSER_DEV_URL=http://127.0.0.1:1420 electron electron/main.cjs\"",
+    "electron:build": "npm run build && electron-builder --mac dmg",
+    "tauri": "tauri",
+    "tauri:dev": "tauri dev",
+    "tauri:build": "tauri build"
+  },
+  "dependencies": {
+    "@tauri-apps/api": "^2.11.0",
+    "lucide": "^1.18.0"
+  },
+  "devDependencies": {
+    "@tauri-apps/cli": "^2.11.2",
+    "concurrently": "^10.0.3",
+    "electron": "^42.4.0",
+    "electron-builder": "^26.15.3",
+    "typescript": "^6.0.3",
+    "vite": "^8.0.16",
+    "wait-on": "^9.0.10"
+  },
+  "build": {
+    "appId": "com.helmlab.cleanbrowser.chromium",
+    "productName": "Clean Browser",
+    "files": [
+      "dist/**/*",
+      "electron/**/*",
+      "landing/**/*",
+      "src-tauri/icons/icon.icns",
+      "src-tauri/icons/icon.png",
+      "package.json"
+    ],
+    "compression": "maximum",
+    "directories": {
+      "output": "release/electron"
+    },
+    "afterPack": "build/adhoc-sign.cjs",
+    "afterAllArtifactBuild": "build/set-dmg-icon.cjs",
+    "mac": {
+      "target": [
+        "dmg"
+      ],
+      "category": "public.app-category.developer-tools",
+      "icon": "src-tauri/icons/icon.icns"
+    },
+    "dmg": {
+      "title": "Clean Browser",
+      "artifactName": "clean-browser-${version}-${arch}.${ext}",
+      "format": "ULFO",
+      "icon": "src-tauri/icons/icon.icns",
+      "iconSize": 120,
+      "background": "build/background.png",
+      "window": {
+        "width": 600,
+        "height": 400
+      },
+      "contents": [
+        { "x": 170, "y": 205, "type": "file" },
+        { "x": 430, "y": 205, "type": "link", "path": "/Applications" }
+      ]
+    }
+  }
+}

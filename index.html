@@ -1,0 +1,128 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Clean Browser</title>
+  </head>
+  <body>
+    <div id="app">
+      <section class="capture-canvas" id="capture-canvas">
+        <div class="browser-frame" id="browser-frame">
+          <header class="browser-chrome" id="browser-chrome" data-tauri-drag-region>
+            <div class="chrome-left" data-tauri-drag-region>
+              <div class="window-controls" data-tauri-drag-region>
+                <button class="traffic close" id="close-window" type="button" aria-label="Close">
+                  <i data-lucide="x"></i>
+                </button>
+                <button class="traffic minimize" id="minimize-window" type="button" aria-label="Minimize">
+                  <i data-lucide="minus"></i>
+                </button>
+                <button class="traffic maximize" id="maximize-window" type="button" aria-label="Zoom">
+                  <i data-lucide="plus"></i>
+                </button>
+              </div>
+
+              <nav class="nav-controls utility-controls" aria-label="Browser controls">
+                <button class="icon-button" id="go-back" type="button" aria-label="Back" title="Back" disabled>
+                  <i data-lucide="chevron-left"></i>
+                </button>
+                <button class="icon-button" id="go-forward" type="button" aria-label="Forward" title="Forward" disabled>
+                  <i data-lucide="chevron-right"></i>
+                </button>
+                <button class="icon-button" id="reload-page" type="button" aria-label="Reload" title="Reload">
+                  <i data-lucide="rotate-cw"></i>
+                </button>
+              </nav>
+            </div>
+
+            <form class="address-form" id="address-form">
+              <span class="address-icon" aria-hidden="true">
+                <span class="icon-default"><i data-lucide="globe"></i></span>
+                <span class="icon-custom"><i data-lucide="lock"></i></span>
+              </span>
+              <input
+                id="address-input"
+                type="text"
+                spellcheck="false"
+                autocomplete="off"
+                placeholder="Search or enter address"
+                aria-label="Address"
+              />
+              <button
+                class="address-edit"
+                id="address-lock"
+                type="button"
+                aria-label="Custom address text"
+                title="Show a custom address in the bar"
+              >
+                <span class="icon-default"><i data-lucide="pencil"></i></span>
+                <span class="icon-custom"><i data-lucide="x"></i></span>
+              </button>
+            </form>
+
+            <div class="chrome-right utility-controls">
+              <div class="preset-controls" role="group" aria-label="Viewport presets">
+                <button class="preset-button is-active" type="button" data-preset="desktop" aria-label="Desktop" title="1440 × 900">
+                  <i data-lucide="monitor"></i>
+                </button>
+                <button class="preset-button" type="button" data-preset="tablet" aria-label="Tablet" title="1024 × 768">
+                  <i data-lucide="tablet"></i>
+                </button>
+                <button class="preset-button" type="button" data-preset="phone" aria-label="Phone" title="390 × 844">
+                  <i data-lucide="smartphone"></i>
+                </button>
+              </div>
+
+              <div class="size-menu">
+                <button class="preset-button" id="size-toggle" type="button" aria-haspopup="true" aria-expanded="false" aria-label="Size & aspect ratio" title="Size & aspect ratio">
+                  <i data-lucide="proportions"></i>
+                </button>
+                <div class="size-popover" id="size-popover" hidden>
+                  <div class="size-section-label">Aspect ratio</div>
+                  <div class="size-ratio-row">
+                    <button type="button" class="size-chip" data-w="1280" data-h="720">16:9</button>
+                    <button type="button" class="size-chip" data-w="800" data-h="800">1:1</button>
+                    <button type="button" class="size-chip" data-w="450" data-h="800">9:16</button>
+                    <button type="button" class="size-chip" data-w="1200" data-h="630">OG</button>
+                  </div>
+                  <div class="size-section-label">Custom size</div>
+                  <form class="size-custom" id="size-custom-form">
+                    <input id="size-w" type="number" min="200" max="4000" step="1" placeholder="W" aria-label="Width" />
+                    <span class="size-x" aria-hidden="true">×</span>
+                    <input id="size-h" type="number" min="200" max="4000" step="1" placeholder="H" aria-label="Height" />
+                    <button type="submit" class="size-apply">Set</button>
+                  </form>
+                </div>
+              </div>
+
+              <button class="icon-button fullpage-button" id="capture-fullpage" type="button" aria-label="Take full page screenshot" title="Full page screenshot — ⌘⇧F">
+                <i data-lucide="gallery-vertical"></i>
+              </button>
+
+              <button class="capture-button" id="capture-shot" type="button" aria-label="Take screenshot" title="Take screenshot — ⌘⏎">
+                <i data-lucide="camera"></i>
+              </button>
+            </div>
+          </header>
+
+          <main class="browser-content" id="browser-content" data-tauri-drag-region>
+            <div class="stage-placeholder" id="stage-placeholder">
+              <div class="stage-logo" aria-hidden="true">
+                <i data-lucide="aperture"></i>
+              </div>
+              <div class="stage-copy">
+                <div class="mark">Clean Browser</div>
+                <p>Enter a URL, frame the page, take the clean shot.</p>
+              </div>
+            </div>
+          </main>
+        </div>
+      </section>
+
+      <aside class="toast" id="toast" aria-live="polite"></aside>
+    </div>
+
+    <script type="module" src="/src/main.ts"></script>
+  </body>
+</html>

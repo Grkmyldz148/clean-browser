@@ -1,0 +1,776 @@
+:root {
+  /* User-tunable frame settings (kept in sync from main.ts / settings) */
+  --canvas-color: #ffffff;
+  --bar-color: #fbfbfa;
+  --bar-height: 56px;
+  --frame-radius: 0px;
+  --address-radius: 11px;
+  --address-width: 460px;
+  --canvas-padding: 0px;
+  --shadow-opacity: 0;
+  --page-color: #ffffff;
+  /* Matte behind the frame (padding area). Defaults to the page color; a
+     backdrop preset overrides it with a solid tone or gradient. */
+  --backdrop: var(--page-color);
+  /* Background of the actual page surface (webview/content). Kept neutral so
+     the matte/canvas color never bleeds through a site's transparent header;
+     auto-match tints it to blend with the live page. */
+  --page-surface: #ffffff;
+
+  /* Brand accent */
+  --accent: #4f46e5;
+  --accent-strong: #4338ca;
+  --accent-contrast: #ffffff;
+  --accent-soft: rgba(79, 70, 229, 0.14);
+
+  /* Adaptive chrome tokens — these flip under .bar-dark for legibility
+     on any custom bar color. Defaults are tuned for a light bar. */
+  --chrome-ink: #1d1e22;
+  --chrome-ink-soft: #5b5d64;
+  --chrome-ink-muted: #9a9ca3;
+  --chrome-line: rgba(20, 22, 28, 0.1);
+  --chrome-line-strong: rgba(20, 22, 28, 0.16);
+  --chrome-fill: rgba(20, 22, 28, 0.045);
+  --chrome-fill-hover: rgba(20, 22, 28, 0.08);
+  --chrome-fill-active: rgba(20, 22, 28, 0.12);
+  --chrome-field: rgba(20, 22, 28, 0.05);
+  --chrome-field-border: rgba(20, 22, 28, 0.08);
+  --chrome-elevated: #ffffff;
+  --chrome-elevated-shadow: 0 1px 2px rgba(16, 18, 24, 0.1), 0 0 0 0.5px rgba(16, 18, 24, 0.05);
+
+  color: var(--chrome-ink);
+  background: var(--page-color);
+  font-family:
+    Inter, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+  font-synthesis: none;
+  text-rendering: optimizeLegibility;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+body.bar-dark {
+  --chrome-ink: #f3f3f4;
+  --chrome-ink-soft: rgba(243, 243, 244, 0.74);
+  --chrome-ink-muted: rgba(243, 243, 244, 0.46);
+  --chrome-line: rgba(255, 255, 255, 0.12);
+  --chrome-line-strong: rgba(255, 255, 255, 0.2);
+  --chrome-fill: rgba(255, 255, 255, 0.08);
+  --chrome-fill-hover: rgba(255, 255, 255, 0.14);
+  --chrome-fill-active: rgba(255, 255, 255, 0.2);
+  --chrome-field: rgba(255, 255, 255, 0.1);
+  --chrome-field-border: rgba(255, 255, 255, 0.14);
+  --chrome-elevated: rgba(255, 255, 255, 0.18);
+  --chrome-elevated-shadow: 0 1px 2px rgba(0, 0, 0, 0.28);
+}
+
+* {
+  box-sizing: border-box;
+}
+
+html,
+body,
+#app {
+  width: 100%;
+  height: 100%;
+  margin: 0;
+  overflow: hidden;
+}
+
+button,
+input {
+  font: inherit;
+}
+
+button {
+  -webkit-app-region: no-drag;
+  cursor: default;
+}
+
+input,
+form,
+.nav-controls,
+.preset-controls,
+.capture-button,
+.window-controls {
+  -webkit-app-region: no-drag;
+}
+
+/* ---------- Stage ---------- */
+
+.capture-canvas {
+  position: fixed;
+  inset: 0;
+  display: grid;
+  place-items: center;
+  padding: var(--canvas-padding);
+  background: var(--backdrop);
+}
+
+.browser-frame {
+  position: relative;
+  width: 100%;
+  height: 100%;
+  overflow: hidden;
+  border-radius: var(--frame-radius);
+  background: var(--page-surface);
+  box-shadow: 0 24px 60px -28px rgba(15, 18, 26, calc(var(--shadow-opacity) * 1.4)),
+    0 8px 24px -16px rgba(15, 18, 26, var(--shadow-opacity));
+}
+
+/* ---------- Chrome bar ---------- */
+
+.browser-chrome {
+  position: absolute;
+  inset: 0 0 auto;
+  z-index: 10;
+  display: grid;
+  grid-template-columns: minmax(168px, 1fr) minmax(220px, var(--address-width)) minmax(168px, 1fr);
+  gap: 16px;
+  align-items: center;
+  height: var(--bar-height);
+  padding: 0 16px;
+  background: var(--bar-color);
+  color: var(--chrome-ink);
+  border-bottom: 1px solid var(--chrome-line);
+  user-select: none;
+  -webkit-app-region: drag;
+}
+
+.chrome-left,
+.chrome-right,
+.window-controls,
+.nav-controls,
+.preset-controls {
+  display: flex;
+  align-items: center;
+}
+
+.chrome-left {
+  gap: 14px;
+  min-width: 0;
+}
+
+.chrome-right {
+  justify-content: flex-end;
+  gap: 10px;
+  min-width: 0;
+}
+
+.utility-controls {
+  transition:
+    opacity 160ms ease,
+    transform 160ms ease;
+}
+
+/* ---------- Traffic lights ---------- */
+
+.window-controls {
+  gap: 8px;
+  padding-right: 2px;
+}
+
+.traffic {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 12px;
+  height: 12px;
+  padding: 0;
+  border: 0;
+  border-radius: 999px;
+  color: rgba(0, 0, 0, 0.5);
+  box-shadow: inset 0 0 0 0.5px rgba(0, 0, 0, 0.14);
+}
+
+.traffic.close {
+  background: #ff5f57;
+}
+
+.traffic.minimize {
+  background: #febc2e;
+}
+
+.traffic.maximize {
+  background: #28c840;
+}
+
+.traffic svg {
+  width: 8px;
+  height: 8px;
+  stroke-width: 2.4;
+  opacity: 0;
+  transition: opacity 100ms ease;
+}
+
+.window-controls:hover .traffic svg {
+  opacity: 1;
+}
+
+/* ---------- Icon buttons ---------- */
+
+.icon-button {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 30px;
+  height: 30px;
+  border: 0;
+  border-radius: 9px;
+  background: transparent;
+  color: var(--chrome-ink-soft);
+  transition:
+    background 120ms ease,
+    color 120ms ease,
+    transform 90ms ease;
+}
+
+.nav-controls {
+  gap: 2px;
+}
+
+.icon-button:hover:not(:disabled) {
+  background: var(--chrome-fill-hover);
+  color: var(--chrome-ink);
+}
+
+.icon-button:active:not(:disabled) {
+  background: var(--chrome-fill-active);
+  transform: scale(0.94);
+}
+
+.icon-button:disabled {
+  color: var(--chrome-ink-muted);
+  opacity: 0.55;
+}
+
+/* ---------- Address bar ---------- */
+
+.address-form {
+  position: relative;
+  display: flex;
+  align-items: center;
+  width: min(100%, var(--address-width));
+  height: 36px;
+  justify-self: center;
+}
+
+.address-icon {
+  position: absolute;
+  left: 12px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  color: var(--chrome-ink-muted);
+  pointer-events: none;
+}
+
+.address-icon svg {
+  width: 14px;
+  height: 14px;
+  stroke-width: 2;
+}
+
+#address-input {
+  width: 100%;
+  height: 100%;
+  min-width: 0;
+  padding: 0 36px;
+  border: 1px solid var(--chrome-field-border);
+  border-radius: var(--address-radius);
+  outline: none;
+  background: var(--chrome-field);
+  color: var(--chrome-ink);
+  font-size: 13.5px;
+  font-weight: 500;
+  letter-spacing: -0.01em;
+  text-align: center;
+  transition:
+    background 130ms ease,
+    border-color 130ms ease,
+    box-shadow 130ms ease;
+}
+
+#address-input::placeholder {
+  color: var(--chrome-ink-muted);
+}
+
+#address-input::selection {
+  background: var(--accent-soft);
+}
+
+#address-input:hover {
+  background: var(--chrome-fill-hover);
+}
+
+#address-input:focus {
+  background: var(--chrome-elevated);
+  border-color: transparent;
+  color: var(--chrome-ink);
+  box-shadow:
+    0 0 0 1px var(--accent),
+    0 0 0 4px var(--accent-soft);
+}
+
+body.bar-dark #address-input:focus {
+  color: #ffffff;
+}
+
+/* Custom-address edit toggle, tucked into the right of the address field */
+.address-edit {
+  position: absolute;
+  right: 6px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 24px;
+  height: 24px;
+  border: 0;
+  border-radius: 6px;
+  background: transparent;
+  color: var(--chrome-ink-muted);
+  transition:
+    background 120ms ease,
+    color 120ms ease;
+}
+
+.address-edit:hover {
+  background: var(--chrome-fill-hover);
+  color: var(--chrome-ink);
+}
+
+.address-edit svg {
+  width: 13px;
+  height: 13px;
+  stroke-width: 2;
+}
+
+/* Mode-aware icons: default (globe / pencil) vs custom (lock / clear). The
+   wrapping spans are toggled by body.address-custom regardless of how the
+   lucide SVGs are rendered inside them. */
+.address-icon .icon-default,
+.address-icon .icon-custom,
+.address-edit .icon-default,
+.address-edit .icon-custom {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+}
+
+/* Match the combined rule's specificity (0,2,0) so the custom icon is actually
+   hidden by default — otherwise both icons stack on top of each other. */
+.address-icon .icon-custom,
+.address-edit .icon-custom {
+  display: none;
+}
+
+body.address-custom .icon-default {
+  display: none;
+}
+
+body.address-custom .icon-custom {
+  display: inline-flex;
+}
+
+/* Custom-address mode reads as a distinct, accented field. */
+body.address-custom #address-input {
+  border-color: transparent;
+  background: var(--accent-soft);
+  box-shadow: 0 0 0 1px var(--accent);
+}
+
+body.address-custom .address-icon {
+  color: var(--accent);
+}
+
+body.address-custom .address-edit {
+  color: var(--accent);
+}
+
+body.bar-dark.address-custom .address-icon,
+body.bar-dark.address-custom .address-edit {
+  color: #ffffff;
+}
+
+/* The edit affordance never belongs in the exported shot. */
+.capture-mode .address-edit {
+  display: none;
+}
+
+/* ---------- Preset segmented control ---------- */
+
+.preset-controls {
+  gap: 2px;
+  padding: 3px;
+  border-radius: 11px;
+  background: var(--chrome-fill);
+  border: 1px solid var(--chrome-line);
+}
+
+.preset-button {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 30px;
+  height: 28px;
+  border: 0;
+  border-radius: 8px;
+  background: transparent;
+  color: var(--chrome-ink-muted);
+  transition:
+    background 130ms ease,
+    color 130ms ease,
+    box-shadow 130ms ease;
+}
+
+.preset-button:hover:not(.is-active) {
+  color: var(--chrome-ink);
+}
+
+.preset-button.is-active {
+  background: var(--chrome-elevated);
+  color: var(--chrome-ink);
+  box-shadow: var(--chrome-elevated-shadow);
+}
+
+/* ---------- Size & aspect popover ---------- */
+
+.size-menu {
+  position: relative;
+  display: inline-flex;
+}
+
+.size-popover {
+  position: absolute;
+  top: calc(100% + 10px);
+  right: 0;
+  z-index: 30;
+  width: 236px;
+  padding: 12px;
+  border-radius: 12px;
+  background: #ffffff;
+  border: 1px solid rgba(20, 22, 28, 0.1);
+  box-shadow:
+    0 16px 40px -16px rgba(15, 18, 26, 0.36),
+    0 0 0 0.5px rgba(15, 18, 26, 0.06);
+}
+
+body.bar-dark .size-popover {
+  background: #26282e;
+  border-color: rgba(255, 255, 255, 0.12);
+}
+
+.size-popover[hidden] {
+  display: none;
+}
+
+.size-section-label {
+  margin-bottom: 7px;
+  color: var(--chrome-ink-muted);
+  font-size: 10.5px;
+  font-weight: 640;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+}
+
+.size-ratio-row {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 6px;
+  margin-bottom: 12px;
+}
+
+.size-chip {
+  height: 30px;
+  border: 1px solid var(--chrome-line);
+  border-radius: 8px;
+  background: var(--chrome-fill);
+  color: var(--chrome-ink-soft);
+  font-size: 12px;
+  font-weight: 560;
+  cursor: pointer;
+  transition:
+    background 120ms ease,
+    color 120ms ease;
+}
+
+.size-chip:hover {
+  background: var(--chrome-fill-hover);
+  color: var(--chrome-ink);
+}
+
+.size-custom {
+  display: grid;
+  grid-template-columns: 1fr auto 1fr auto;
+  gap: 6px;
+  align-items: center;
+}
+
+.size-custom input {
+  width: 100%;
+  height: 30px;
+  min-width: 0;
+  padding: 0 6px;
+  border: 1px solid var(--chrome-field-border);
+  border-radius: 7px;
+  background: var(--chrome-field);
+  color: var(--chrome-ink);
+  font-size: 12px;
+  text-align: center;
+}
+
+.size-custom input:focus {
+  outline: none;
+  box-shadow: 0 0 0 1px var(--accent);
+}
+
+.size-x {
+  color: var(--chrome-ink-muted);
+  font-size: 12px;
+}
+
+.size-apply {
+  height: 30px;
+  padding: 0 12px;
+  border: 0;
+  border-radius: 7px;
+  background: var(--accent);
+  color: var(--accent-contrast);
+  font-size: 12px;
+  font-weight: 580;
+  cursor: pointer;
+}
+
+.size-apply:hover {
+  background: var(--accent-strong);
+}
+
+/* ---------- Capture button ---------- */
+
+.capture-button {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 38px;
+  height: 34px;
+  border: 0;
+  border-radius: 10px;
+  background: var(--accent);
+  color: var(--accent-contrast);
+  box-shadow:
+    0 1px 2px rgba(35, 30, 110, 0.28),
+    inset 0 1px 0 rgba(255, 255, 255, 0.18);
+  transition:
+    background 120ms ease,
+    transform 90ms ease,
+    box-shadow 120ms ease;
+}
+
+.capture-button:hover:not(:disabled) {
+  background: var(--accent-strong);
+}
+
+.capture-button:active:not(:disabled) {
+  transform: scale(0.95);
+}
+
+.capture-button:disabled {
+  background: var(--chrome-fill-active);
+  color: var(--chrome-ink-muted);
+  box-shadow: none;
+}
+
+/* ---------- Icon sizing for line icons ---------- */
+
+.icon-button svg,
+.preset-button svg,
+.capture-button svg {
+  width: 16px;
+  height: 16px;
+  stroke-width: 1.9;
+}
+
+/* ---------- Content + placeholder ---------- */
+
+.browser-content {
+  position: absolute;
+  inset: var(--bar-height) 0 0;
+  z-index: 0;
+  display: grid;
+  place-items: center;
+  overflow: hidden;
+  background: var(--page-surface);
+}
+
+#page-view {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  border: 0;
+  background: var(--page-surface);
+  /* Square top corners sit flush under the bar; the bottom corners echo the
+     frame radius so the whole window reads as one rounded rectangle. */
+  border-radius: 0 0 var(--frame-radius) var(--frame-radius);
+}
+
+.stage-placeholder {
+  position: relative;
+  z-index: 1;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 18px;
+  padding: 24px;
+  color: #6a6f75;
+  text-align: center;
+  transition:
+    opacity 200ms ease,
+    transform 200ms ease;
+}
+
+.stage-placeholder.hidden {
+  opacity: 0;
+  transform: translateY(4px);
+  pointer-events: none;
+}
+
+.stage-logo {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 52px;
+  height: 52px;
+  border-radius: 15px;
+  background: #1d1e22;
+  color: #ffffff;
+  box-shadow:
+    0 10px 24px -12px rgba(20, 22, 30, 0.45),
+    inset 0 1px 0 rgba(255, 255, 255, 0.12);
+}
+
+.stage-logo svg {
+  width: 26px;
+  height: 26px;
+  stroke-width: 1.7;
+}
+
+.stage-copy {
+  display: grid;
+  gap: 6px;
+}
+
+.mark {
+  color: #16181b;
+  font-size: 17px;
+  font-weight: 650;
+  letter-spacing: -0.015em;
+}
+
+.stage-placeholder p {
+  margin: 0;
+  max-width: 320px;
+  font-size: 13.5px;
+  line-height: 1.45;
+  color: #80858c;
+}
+
+/* ---------- Toast ---------- */
+
+.toast {
+  position: fixed;
+  left: 50%;
+  bottom: 22px;
+  z-index: 40;
+  display: flex;
+  align-items: center;
+  max-width: min(520px, calc(100vw - 32px));
+  padding: 10px 16px;
+  border: 1px solid rgba(20, 22, 28, 0.06);
+  border-radius: 12px;
+  background: rgba(255, 255, 255, 0.92);
+  -webkit-backdrop-filter: saturate(180%) blur(20px);
+  backdrop-filter: saturate(180%) blur(20px);
+  color: #1d1e22;
+  font-size: 13px;
+  font-weight: 500;
+  letter-spacing: -0.01em;
+  box-shadow:
+    0 12px 32px -12px rgba(15, 18, 26, 0.3),
+    0 0 0 0.5px rgba(15, 18, 26, 0.04);
+  opacity: 0;
+  transform: translate(-50%, 10px) scale(0.98);
+  transition:
+    opacity 180ms ease,
+    transform 180ms cubic-bezier(0.2, 0.9, 0.3, 1);
+  pointer-events: none;
+}
+
+.toast.visible {
+  opacity: 1;
+  transform: translate(-50%, 0) scale(1);
+}
+
+/* ---------- States ---------- */
+
+.is-loading #reload-page svg,
+.is-loading .capture-button svg {
+  animation: spin 900ms linear infinite;
+}
+
+.capture-mode.hide-tools-in-capture .utility-controls {
+  opacity: 0;
+  pointer-events: none;
+  transform: translateY(-2px);
+}
+
+/* Menu-driven chrome visibility toggles (View ▸ Hide …) */
+.hide-traffic .window-controls {
+  display: none;
+}
+
+.hide-address .address-form {
+  visibility: hidden;
+}
+
+.hide-toolbar .nav-controls,
+.hide-toolbar .preset-controls,
+.hide-toolbar .size-menu,
+.hide-toolbar .fullpage-button,
+.hide-toolbar .capture-button {
+  display: none;
+}
+
+.capture-mode .toast {
+  display: none;
+}
+
+@keyframes spin {
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+/* ---------- Responsive ---------- */
+
+@media (max-width: 860px) {
+  :root {
+    --address-width: 340px;
+  }
+
+  .browser-chrome {
+    grid-template-columns: auto minmax(120px, 1fr) auto;
+    gap: 10px;
+    padding: 0 12px;
+  }
+
+  .nav-controls,
+  .preset-controls,
+  .size-menu {
+    display: none;
+  }
+
+  .chrome-left,
+  .chrome-right {
+    gap: 10px;
+  }
+}
