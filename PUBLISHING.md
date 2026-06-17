@@ -42,10 +42,10 @@ The resulting asset is `clean-browser-<version>-arm64.dmg`.
 Users then install with:
 
 ```sh
-brew install --cask --no-quarantine Grkmyldz148/tap/clean-browser
+brew install --cask Grkmyldz148/tap/clean-browser
 ```
 
-`--no-quarantine` is what lets the unsigned app open without the "damaged" prompt.
+The cask's `postflight` strips the quarantine flag, so the unsigned app opens without the "damaged" prompt.
 
 ## 4. Want a warning‑free install?
 

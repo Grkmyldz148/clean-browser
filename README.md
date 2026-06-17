@@ -84,10 +84,10 @@ Marketing shots, docs, changelogs and social posts look better when the site sit
 ### Homebrew (recommended)
 
 ```sh
-brew install --cask --no-quarantine Grkmyldz148/tap/clean-browser
+brew install --cask Grkmyldz148/tap/clean-browser
 ```
 
-`--no-quarantine` lets the unsigned app open straight away (no “damaged” prompt).
+The cask strips the quarantine flag on install, so the unsigned app opens straight away (no “damaged” prompt).
 
 ### Download
 

@@ -1,7 +1,7 @@
 # Homebrew Cask for Clean Browser.
 #
 # Put this in a public "homebrew-tap" repo as Casks/clean-browser.rb, then:
-#   brew install --cask --no-quarantine Grkmyldz148/tap/clean-browser
+#   brew install --cask Grkmyldz148/tap/clean-browser
 #
 # For a stricter cask, swap `sha256 :no_check` for the real digest of the asset:
 #   shasum -a 256 clean-browser-<version>-arm64.dmg
@@ -19,13 +19,17 @@ cask "clean-browser" do
 
   app "Clean Browser.app"
 
+  # Unsigned (ad-hoc) build: strip the quarantine flag after install so macOS
+  # opens it without the "damaged" prompt. (Homebrew removed the --no-quarantine
+  # CLI flag, so we do it here instead.)
+  postflight do
+    system_command "/usr/bin/xattr",
+                   args: ["-dr", "com.apple.quarantine", "#{appdir}/Clean Browser.app"]
+  end
+
   caveats <<~EOS
-    Clean Browser is ad-hoc signed but not notarized. Install with
-    --no-quarantine so macOS opens it without the "damaged" prompt:
-
-      brew install --cask --no-quarantine Grkmyldz148/tap/clean-browser
-
-    If you already installed it, clear the quarantine flag once:
+    Clean Browser is unsigned (not notarized). If macOS still reports it as
+    "damaged", clear the quarantine flag manually:
 
       xattr -dr com.apple.quarantine "/Applications/Clean Browser.app"
   EOS
