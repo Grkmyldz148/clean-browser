@@ -21,6 +21,16 @@
 
 ---
 
+## ⚡ Quick install
+
+```sh
+brew install --cask Grkmyldz148/tap/clean-browser
+```
+
+<sub>macOS · Apple Silicon · free &amp; open source. Prefer a direct download? Grab the DMG from [Releases](https://github.com/Grkmyldz148/clean-browser/releases).</sub>
+
+---
+
 ## ✨ Why Clean Browser
 
 Marketing shots, docs, changelogs and social posts look better when the site sits in a clean browser frame on a nice backdrop. Clean Browser is a tiny Chromium browser whose **whole job is producing that shot**: open a URL, style the chrome, pick a backdrop, and export at retina resolution — without a design tool, plugins, or manual cropping.
