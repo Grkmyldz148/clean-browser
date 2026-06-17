@@ -79,14 +79,14 @@ Marketing shots, docs, changelogs and social posts look better when the site sit
 ### Homebrew (recommended)
 
 ```sh
-brew install --cask --no-quarantine OWNER/tap/clean-browser
+brew install --cask --no-quarantine Grkmyldz148/tap/clean-browser
 ```
 
 `--no-quarantine` lets the unsigned app open straight away (no “damaged” prompt).
 
 ### Download
 
-1. Grab the latest **`clean-browser-<version>-arm64.dmg`** from [**Releases**](https://github.com/OWNER/clean-browser/releases).
+1. Grab the latest **`clean-browser-<version>-arm64.dmg`** from [**Releases**](https://github.com/Grkmyldz148/clean-browser/releases).
 2. Open it and drag **Clean Browser** onto **Applications**.
 3. First launch — do **one** of:
    - **Right‑click the app → Open**, then confirm; _or_

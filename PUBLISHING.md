@@ -4,13 +4,6 @@ Clean Browser ships **unsigned** (no paid Apple Developer ID). That's fine for a
 free/open‑source release — it just means users do a one‑time Gatekeeper approval
 (or install via Homebrew with `--no-quarantine`).
 
-> Replace `OWNER` everywhere below (and in `homebrew/clean-browser.rb` +
-> `README.md`) with your GitHub username/org. Quick one‑liner from the repo root:
->
-> ```sh
-> grep -rl OWNER . --include=*.rb --include=*.md | xargs sed -i '' 's/OWNER/your-username/g'
-> ```
-
 ## 1. Put it on GitHub
 
 ```sh
@@ -18,7 +11,7 @@ git init           # already initialised if you cloned
 git add -A
 git commit -m "Clean Browser 0.1.0"
 git branch -M main
-git remote add origin https://github.com/OWNER/clean-browser.git
+git remote add origin https://github.com/Grkmyldz148/clean-browser.git
 git push -u origin main
 ```
 
@@ -49,7 +42,7 @@ The resulting asset is `clean-browser-<version>-arm64.dmg`.
 Users then install with:
 
 ```sh
-brew install --cask --no-quarantine OWNER/tap/clean-browser
+brew install --cask --no-quarantine Grkmyldz148/tap/clean-browser
 ```
 
 `--no-quarantine` is what lets the unsigned app open without the "damaged" prompt.
