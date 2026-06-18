@@ -404,12 +404,17 @@ body.bar-dark.address-custom .address-edit {
   border-radius: 11px;
   background: var(--chrome-fill);
   border: 1px solid var(--chrome-line);
+  /* Never let the pill collapse — its buttons would squash and their icons
+     would overlap when the bar gets tight (e.g. laptop/tablet widths). */
+  flex-shrink: 0;
 }
 
 .preset-button {
   display: inline-flex;
   align-items: center;
   justify-content: center;
+  /* Hold each button at its full size so the icons can't overlap. */
+  flex: 0 0 auto;
   width: 30px;
   height: 28px;
   border: 0;

@@ -17,7 +17,7 @@ import { state } from "./state";
 import { applyAdaptiveTheme } from "./theme";
 import type { PageStyle, WebviewTag } from "./types";
 import { browserBounds, layoutBrowser, setBusy, showToast } from "./ui";
-import { clamp } from "./utils";
+import { clamp, loadImage } from "./utils";
 
 export function normalizeUrl(rawValue: string): string {
   const value = rawValue.trim();
@@ -77,6 +77,10 @@ function ensurePageView(): WebviewTag {
   view.id = "page-view";
   view.setAttribute("partition", "persist:clean-browser");
   view.setAttribute("useragent", navigator.userAgent.replace(/ Electron\/[\d.]+/i, ""));
+  // Required so the <webview> routes target="_blank" links and window.open()
+  // calls to the main process handler instead of silently swallowing them.
+  // Without it, Electron blocks the popup before the handler is ever consulted.
+  view.setAttribute("allowpopups", "");
   assertElement(browserContent, "browser content").appendChild(view);
 
   view.addEventListener("did-start-loading", () => setBusy(true));
@@ -95,13 +99,10 @@ function ensurePageView(): WebviewTag {
     }
     showToast(`Could not open ${detail.validatedURL || state.currentUrl}`);
   });
-  view.addEventListener("new-window", (event) => {
-    const detail = event as unknown as { url?: string };
-    event.preventDefault();
-    if (detail.url) {
-      view.src = detail.url;
-    }
-  });
+  // target="_blank" links and window.open() popups are redirected into this
+  // same surface by the main process (setWindowOpenHandler in main.cjs). The
+  // <webview> "new-window" event that used to handle this was removed in
+  // Electron 22+, so there is nothing to listen for here anymore.
 
   state.pageView = view;
   return view;
@@ -126,8 +127,82 @@ export function syncPageState(): void {
   }
 }
 
+// Pick the dominant colour out of a captured strip. A plain average would wash
+// black text on white (or vice versa) into a muddy grey, so we bucket colours
+// on a coarse grid and return the average of the most-populated bucket.
+function dominantColor(image: HTMLImageElement): string | null {
+  const SAMPLE_W = 48;
+  const SAMPLE_H = 8;
+  const canvas = document.createElement("canvas");
+  canvas.width = SAMPLE_W;
+  canvas.height = SAMPLE_H;
+  const ctx = canvas.getContext("2d", { willReadFrequently: true });
+  if (!ctx) {
+    return null;
+  }
+  // Downscaling into a tiny canvas averages neighbouring pixels for us.
+  ctx.drawImage(image, 0, 0, SAMPLE_W, SAMPLE_H);
+  const { data } = ctx.getImageData(0, 0, SAMPLE_W, SAMPLE_H);
+
+  const buckets = new Map<number, { n: number; r: number; g: number; b: number }>();
+  let best: { n: number; r: number; g: number; b: number } | null = null;
+  for (let i = 0; i < data.length; i += 4) {
+    if (data[i + 3] < 200) {
+      continue;
+    }
+    const r = data[i];
+    const g = data[i + 1];
+    const b = data[i + 2];
+    const key = ((r & 0xf0) << 16) | ((g & 0xf0) << 8) | (b & 0xf0);
+    let bucket = buckets.get(key);
+    if (!bucket) {
+      bucket = { n: 0, r: 0, g: 0, b: 0 };
+      buckets.set(key, bucket);
+    }
+    bucket.n += 1;
+    bucket.r += r;
+    bucket.g += g;
+    bucket.b += b;
+    if (!best || bucket.n > best.n) {
+      best = bucket;
+    }
+  }
+  if (!best) {
+    return null;
+  }
+  return `rgb(${Math.round(best.r / best.n)}, ${Math.round(best.g / best.n)}, ${Math.round(best.b / best.n)})`;
+}
+
+// Capture the top strip of the live page — the band the chrome physically sits
+// against — and read its dominant colour from the actual pixels. This catches
+// what CSS can't: gradients, hero images, canvas/WebGL surfaces. Returns null
+// (so the caller can fall back to the CSS probe) when capture isn't available.
+async function sampleTopStripColor(view: WebviewTag): Promise<string | null> {
+  if (!electronBridge) {
+    return null;
+  }
+  const rect = view.getBoundingClientRect();
+  if (rect.width < 2 || rect.height < 2) {
+    return null;
+  }
+  const stripHeight = Math.round(clamp(rect.height * 0.1, 24, 64));
+  try {
+    const dataUrl = await electronBridge.captureRegion({
+      x: rect.left,
+      y: rect.top,
+      width: rect.width,
+      height: stripHeight
+    });
+    const image = await loadImage(dataUrl);
+    return dominantColor(image);
+  } catch {
+    return null;
+  }
+}
+
 // Probe the live page for its dominant background + corner-radius ratio and
-// feed auto-match. Runs through the <webview> so it works for the DOM surface.
+// feed auto-match. Prefers the captured top-strip colour (real pixels) and
+// falls back to the CSS probe when capture is unavailable or hasn't painted.
 async function runAdaptiveAnalysis(): Promise<void> {
   if (!state.pageView) {
     return;
@@ -135,13 +210,15 @@ async function runAdaptiveAnalysis(): Promise<void> {
 
   try {
     const style = (await state.pageView.executeJavaScript(PAGE_PROBE, false)) as PageStyle | null;
-    if (style && style.background) {
-      state.lastPageStyle = {
-        background: style.background,
-        radiusRatio: typeof style.radiusRatio === "number" ? style.radiusRatio : 0
-      };
-      applyAdaptiveTheme(state.lastPageStyle);
+    if (!style || !style.background) {
+      return;
     }
+    const sampled = await sampleTopStripColor(state.pageView);
+    state.lastPageStyle = {
+      background: sampled || style.background,
+      radiusRatio: typeof style.radiusRatio === "number" ? style.radiusRatio : 0
+    };
+    applyAdaptiveTheme(state.lastPageStyle);
   } catch {
     // Page blocked script evaluation; keep the previous theme.
   }

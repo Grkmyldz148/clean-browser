@@ -1,4 +1,14 @@
-const { app, BrowserWindow, Menu, ipcMain, shell, webContents, clipboard, nativeImage } = require("electron");
+const { app, BrowserWindow, Menu, ipcMain, shell, webContents, clipboard, nativeImage, dialog } = require("electron");
+
+// Auto-update (electron-updater) is required defensively: if it ever fails to
+// resolve in a packaged build, the app still launches and simply runs without
+// auto-update instead of crashing on startup.
+let autoUpdater = null;
+try {
+  ({ autoUpdater } = require("electron-updater"));
+} catch (error) {
+  console.error("electron-updater unavailable; auto-update disabled:", error);
+}
 const fs = require("node:fs");
 const path = require("node:path");
 
@@ -45,12 +55,16 @@ const BREAKPOINTS = {
   desktop: { width: 1440, height: 900 }
 };
 // The bar's viewport presets — must match VIEWPORT_PRESETS in the renderer.
-// Used to reopen the window at the last chosen preset size.
+// Derived from BREAKPOINTS so the toolbar presets and the "Resize to
+// Breakpoint" menu stay in lock-step (phone === mobile breakpoint).
 const VIEWPORT_PRESETS = {
-  desktop: { width: 1440, height: 900 },
-  tablet: { width: 1024, height: 820 },
-  phone: { width: 390, height: 844 }
+  desktop: BREAKPOINTS.desktop,
+  laptop: BREAKPOINTS.laptop,
+  tablet: BREAKPOINTS.tablet,
+  phone: BREAKPOINTS.mobile
 };
+// The preset the window opens at on first launch (before the user picks one).
+const DEFAULT_VIEWPORT_PRESET = "laptop";
 const SESSION_FILE_NAME = "session-state-v1.json";
 const PRESETS_FILE_NAME = "appearance-presets-v1.json";
 const MAX_PRESETS = 100;
@@ -65,7 +79,7 @@ let appearancePresets = [];
 // chrome-visibility toggles. chromeVisibility aliases sessionState's copy.
 let sessionState = {
   lastUrl: null,
-  viewportPreset: null,
+  viewportPreset: DEFAULT_VIEWPORT_PRESET,
   chromeVisibility: { traffic: true, address: true, toolbar: true }
 };
 let chromeVisibility = sessionState.chromeVisibility;
@@ -153,7 +167,7 @@ function loadSessionState() {
     const visibility = parsed.chromeVisibility || {};
     sessionState = {
       lastUrl: typeof parsed.lastUrl === "string" && parsed.lastUrl ? parsed.lastUrl : null,
-      viewportPreset: VIEWPORT_PRESETS[parsed.viewportPreset] ? parsed.viewportPreset : null,
+      viewportPreset: VIEWPORT_PRESETS[parsed.viewportPreset] ? parsed.viewportPreset : DEFAULT_VIEWPORT_PRESET,
       chromeVisibility: {
         traffic: visibility.traffic !== false,
         address: visibility.address !== false,
@@ -163,7 +177,7 @@ function loadSessionState() {
   } catch {
     sessionState = {
       lastUrl: null,
-      viewportPreset: null,
+      viewportPreset: DEFAULT_VIEWPORT_PRESET,
       chromeVisibility: { traffic: true, address: true, toolbar: true }
     };
   }
@@ -345,6 +359,10 @@ function createApplicationMenu() {
     {
       label: "Clean Browser",
       submenu: [
+        {
+          label: "Check for Updates...",
+          click: () => checkForUpdates({ manual: true })
+        },
         {
           label: "Settings...",
           accelerator: "CommandOrControl+,",
@@ -818,11 +836,119 @@ ipcMain.handle("app:reset-default", () => {
   return appearanceSettings;
 });
 
+// Links with target="_blank" and window.open() calls would normally spawn a
+// new window/tab. This browser is a single surface, and the old <webview>
+// "new-window" event that used to redirect them was removed in Electron 22+.
+// Catch the popup here instead and steer the same webview to the target URL so
+// the link opens in the current page rather than vanishing.
+app.on("web-contents-created", (_event, contents) => {
+  if (contents.getType() !== "webview") {
+    return;
+  }
+
+  contents.setWindowOpenHandler(({ url }) => {
+    if (/^https?:\/\//i.test(url)) {
+      // Defer: navigating from inside the handler callback is unsupported.
+      queueMicrotask(() => {
+        if (!contents.isDestroyed()) {
+          contents.loadURL(url);
+        }
+      });
+    }
+    return { action: "deny" };
+  });
+});
+
+// Tracks an in-flight update check so overlapping checks (launch + manual)
+// don't stack, and so the manual path knows when to surface a result dialog.
+let updateCheckInFlight = false;
+let manualUpdateCheck = false;
+
+function setupAutoUpdater() {
+  if (!autoUpdater) {
+    return;
+  }
+  autoUpdater.autoDownload = true;
+  autoUpdater.autoInstallOnAppQuit = true;
+
+  autoUpdater.on("update-not-available", () => {
+    if (manualUpdateCheck && mainWindow && !mainWindow.isDestroyed()) {
+      dialog.showMessageBox(mainWindow, {
+        type: "info",
+        message: "You're up to date",
+        detail: `Clean Browser ${app.getVersion()} is the latest version.`,
+        buttons: ["OK"]
+      });
+    }
+    manualUpdateCheck = false;
+    updateCheckInFlight = false;
+  });
+
+  autoUpdater.on("update-downloaded", async (info) => {
+    updateCheckInFlight = false;
+    manualUpdateCheck = false;
+    if (!mainWindow || mainWindow.isDestroyed()) {
+      return;
+    }
+    const { response } = await dialog.showMessageBox(mainWindow, {
+      type: "info",
+      buttons: ["Restart Now", "Later"],
+      defaultId: 0,
+      cancelId: 1,
+      message: `Clean Browser ${info.version} is ready`,
+      detail: "Restart the app to finish updating. It will also install automatically the next time you quit."
+    });
+    if (response === 0) {
+      autoUpdater.quitAndInstall();
+    }
+  });
+
+  autoUpdater.on("error", (error) => {
+    updateCheckInFlight = false;
+    if (manualUpdateCheck && mainWindow && !mainWindow.isDestroyed()) {
+      dialog.showMessageBox(mainWindow, {
+        type: "error",
+        message: "Update check failed",
+        detail: String(error && error.message ? error.message : error),
+        buttons: ["OK"]
+      });
+    }
+    manualUpdateCheck = false;
+  });
+}
+
+function checkForUpdates({ manual = false } = {}) {
+  // Auto-update only works for a packaged, signed app reading the published
+  // GitHub release feed — there is nothing to update against in development.
+  if (!autoUpdater || !app.isPackaged) {
+    if (manual && mainWindow && !mainWindow.isDestroyed()) {
+      dialog.showMessageBox(mainWindow, {
+        type: "info",
+        message: "Updates are only available in the installed app",
+        detail: "Run the packaged Clean Browser to check for updates.",
+        buttons: ["OK"]
+      });
+    }
+    return;
+  }
+  if (updateCheckInFlight) {
+    manualUpdateCheck = manualUpdateCheck || manual;
+    return;
+  }
+  updateCheckInFlight = true;
+  manualUpdateCheck = manual;
+  autoUpdater.checkForUpdates().catch((error) => {
+    updateCheckInFlight = false;
+    console.error("Auto-update check failed:", error);
+  });
+}
+
 app.whenReady().then(() => {
   loadAppearanceSettings();
   loadSessionState();
   loadPresets();
   createApplicationMenu();
+  setupAutoUpdater();
 
   // Packaged builds use icon.icns; in dev the dock shows the default Electron
   // icon, so set it explicitly from the app icon.
@@ -838,6 +964,10 @@ app.whenReady().then(() => {
   }
 
   createWindow();
+
+  // Check once on launch; if a newer release exists it downloads in the
+  // background and prompts to restart when ready.
+  checkForUpdates();
 
   app.on("activate", () => {
     if (BrowserWindow.getAllWindows().length === 0) {

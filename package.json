@@ -11,14 +11,15 @@
     "dev": "vite --host 127.0.0.1 --port 1420",
     "build": "tsc && vite build",
     "electron:dev": "concurrently -k \"npm run dev\" \"wait-on http://127.0.0.1:1420 && CLEAN_BROWSER_DEV_URL=http://127.0.0.1:1420 electron electron/main.cjs\"",
-    "electron:build": "npm run build && electron-builder --mac dmg",
-    "electron:build:signed": "npm run build && electron-builder --mac dmg -c.mac.notarize=true",
+    "electron:build": "npm run build && electron-builder --mac",
+    "electron:build:signed": "npm run build && electron-builder --mac -c.mac.notarize=true",
     "tauri": "tauri",
     "tauri:dev": "tauri dev",
     "tauri:build": "tauri build"
   },
   "dependencies": {
     "@tauri-apps/api": "^2.11.0",
+    "electron-updater": "^6.8.9",
     "lucide": "^1.18.0"
   },
   "devDependencies": {
@@ -55,7 +56,8 @@
     "afterAllArtifactBuild": "build/set-dmg-icon.cjs",
     "mac": {
       "target": [
-        "dmg"
+        "dmg",
+        "zip"
       ],
       "category": "public.app-category.developer-tools",
       "icon": "src-tauri/icons/icon.icns",

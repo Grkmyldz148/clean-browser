@@ -22,22 +22,52 @@ export const DEFAULT_APPEARANCE: AppearanceSettings = {
   exportQuality: 92
 };
 
+// Mirrors the main process's "Resize to Breakpoint" menu (BREAKPOINTS in
+// electron/main.cjs) so the toolbar presets and the menu stay in lock-step.
 export const VIEWPORT_PRESETS: Record<string, ViewportPreset> = {
   desktop: { width: 1440, height: 900 },
-  tablet: { width: 1024, height: 820 },
+  laptop: { width: 1280, height: 800 },
+  tablet: { width: 834, height: 1112 },
   phone: { width: 390, height: 844 }
 };
+
+// The preset the window opens at on first launch (before the user picks one).
+export const DEFAULT_VIEWPORT_PRESET = "laptop";
 
 // Injected into the page to read its dominant background + a representative
 // corner-radius ratio, driving auto-match theming.
 export const PAGE_PROBE = `(() => {
-  const meta = document.querySelector('meta[name="theme-color"]')?.content;
-  const probe = (element) => {
-    if (!element) return null;
-    const color = getComputedStyle(element).backgroundColor;
-    return color && color !== 'rgba(0, 0, 0, 0)' && color !== 'transparent' ? color : null;
-  };
-  const background = meta || probe(document.body) || probe(document.documentElement) || '#ffffff';
+  const clean = (c) => c && c !== 'rgba(0, 0, 0, 0)' && c !== 'transparent' ? c : null;
+  const bgOf = (el) => el ? clean(getComputedStyle(el).backgroundColor) : null;
+
+  // The painted page canvas is the ground truth of what the user sees behind
+  // the content — trust it over theme-color, which sites often set for a
+  // different scheme (a light theme-color on a dark page makes the bar white).
+  let background = bgOf(document.body) || bgOf(document.documentElement);
+
+  // Wrapper-themed SPAs leave body/html transparent and paint an inner shell;
+  // sample the real element stack near the top of the viewport instead.
+  if (!background) {
+    const cx = Math.floor((window.innerWidth || 1024) / 2);
+    outer: for (const y of [10, 48, 96]) {
+      let el = document.elementFromPoint(cx, y);
+      while (el && el !== document.documentElement) {
+        const c = bgOf(el);
+        if (c) { background = c; break outer; }
+        el = el.parentElement;
+      }
+    }
+  }
+
+  // theme-color is only a hint — honour the active colour scheme, then fall
+  // back to white when the page paints nothing of its own.
+  if (!background) {
+    const metas = Array.from(document.querySelectorAll('meta[name="theme-color"]'));
+    const pick = metas.find((m) => { try { return !m.media || matchMedia(m.media).matches; } catch (e) { return !m.media; } }) || metas[0];
+    if (pick && pick.content) background = pick.content;
+  }
+
+  background = background || '#ffffff';
   const selector = 'button, input, a[class], [role="button"], [class*="btn"], [class*="card"], [class*="rounded"]';
   const ratios = [];
   const nodes = document.querySelectorAll(selector);
