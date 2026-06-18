@@ -24,10 +24,16 @@
 ## ⚡ Quick install
 
 ```sh
-brew install --cask Grkmyldz148/tap/clean-browser
+brew install --cask --force Grkmyldz148/tap/clean-browser
 ```
 
-<sub>macOS · Apple Silicon · free &amp; open source. Prefer a direct download? Grab the DMG from [Releases](https://github.com/Grkmyldz148/clean-browser/releases).</sub>
+<div align="center">
+
+<a href="https://github.com/Grkmyldz148/clean-browser/releases/latest"><img src="https://img.shields.io/badge/Download%20DMG-Latest%20release-4f46e5?style=for-the-badge&logo=apple&logoColor=white&labelColor=1d1e22" alt="Download the latest Clean Browser DMG" height="46" /></a>
+
+<sub>macOS · Apple Silicon · free &amp; open source — always the newest signed <code>.dmg</code></sub>
+
+</div>
 
 ---
 
@@ -94,12 +100,14 @@ Marketing shots, docs, changelogs and social posts look better when the site sit
 ### Homebrew (recommended)
 
 ```sh
-brew install --cask Grkmyldz148/tap/clean-browser
+brew install --cask --force Grkmyldz148/tap/clean-browser
 ```
 
 ### Download
 
-1. Grab the latest **`clean-browser-<version>-arm64.dmg`** from [**Releases**](https://github.com/Grkmyldz148/clean-browser/releases).
+<a href="https://github.com/Grkmyldz148/clean-browser/releases/latest"><img src="https://img.shields.io/badge/Download%20DMG-Latest%20release-4f46e5?style=for-the-badge&logo=apple&logoColor=white&labelColor=1d1e22" alt="Download the latest Clean Browser DMG" height="46" /></a>
+
+1. Click **Download DMG** above — always the newest **`clean-browser-<version>-arm64.dmg`** — or browse every build on [Releases](https://github.com/Grkmyldz148/clean-browser/releases).
 2. Open it and drag **Clean Browser** onto **Applications**.
 3. Double‑click to launch — it's signed and notarized, so macOS opens it without warnings.
 
