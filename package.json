@@ -1,6 +1,6 @@
 {
   "name": "clean-browser",
-  "version": "0.1.0",
+  "version": "0.1.1",
   "description": "A Chromium-based minimal browser for clean website screenshots.",
   "author": "Görkem YILDIZ",
   "license": "MIT",
@@ -76,8 +76,17 @@
         "height": 400
       },
       "contents": [
-        { "x": 170, "y": 205, "type": "file" },
-        { "x": 430, "y": 205, "type": "link", "path": "/Applications" }
+        {
+          "x": 170,
+          "y": 205,
+          "type": "file"
+        },
+        {
+          "x": 430,
+          "y": 205,
+          "type": "link",
+          "path": "/Applications"
+        }
       ]
     }
   }

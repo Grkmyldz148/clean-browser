@@ -10,7 +10,7 @@
 ![Apple Silicon](https://img.shields.io/badge/Apple%20Silicon-arm64-555555)
 ![Electron](https://img.shields.io/badge/Electron-42-47848F?logo=electron&logoColor=white)
 ![Chromium](https://img.shields.io/badge/engine-Chromium-4285F4?logo=googlechrome&logoColor=white)
-![Version](https://img.shields.io/badge/version-0.1.0-4f46e5)
+![Version](https://img.shields.io/badge/version-0.1.1-4f46e5)
 ![Made by Görkem YILDIZ](https://img.shields.io/badge/made%20by-G%C3%B6rkem%20YILDIZ-1d1e22)
 
 <br/>
