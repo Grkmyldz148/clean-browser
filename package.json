@@ -59,6 +59,7 @@
         "dmg",
         "zip"
       ],
+      "artifactName": "clean-browser-${version}-${arch}-mac.${ext}",
       "category": "public.app-category.developer-tools",
       "icon": "src-tauri/icons/icon.icns",
       "hardenedRuntime": true,
