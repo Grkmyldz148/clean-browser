@@ -24,9 +24,16 @@ jobs:
 
       - run: npm ci
 
-      - name: Build signed + notarized DMG
-        run: npm run electron:build:signed
+      - name: Build, sign, notarize & publish
+        # `-- --publish always` is appended to the electron:build:signed script
+        # so electron-builder uploads the artifacts to the GitHub Release for the
+        # pushed tag itself (no separate upload step needed).
+        run: npm run electron:build:signed -- --publish always
         env:
+          # Lets electron-builder publish to GitHub Releases. GITHUB_TOKEN is
+          # provided automatically by Actions and has the contents:write scope
+          # granted above — no personal access token required.
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           # Code signing: electron-builder imports this .p12 into a temporary
           # keychain and signs with the Developer ID Application identity it
           # contains. CSC_LINK is the base64 of the exported .p12.
@@ -36,9 +43,3 @@ jobs:
           APPLE_ID: ${{ secrets.APPLE_ID }}
           APPLE_APP_SPECIFIC_PASSWORD: ${{ secrets.APPLE_APP_SPECIFIC_PASSWORD }}
           APPLE_TEAM_ID: ${{ secrets.APPLE_TEAM_ID }}
-
-      - name: Publish to GitHub Release
-        uses: softprops/action-gh-release@v2
-        with:
-          files: release/electron/*.dmg
-          generate_release_notes: true

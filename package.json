@@ -45,6 +45,12 @@
     "directories": {
       "output": "release/electron"
     },
+    "publish": {
+      "provider": "github",
+      "owner": "Grkmyldz148",
+      "repo": "clean-browser",
+      "releaseType": "release"
+    },
     "afterPack": "build/adhoc-sign.cjs",
     "afterAllArtifactBuild": "build/set-dmg-icon.cjs",
     "mac": {
