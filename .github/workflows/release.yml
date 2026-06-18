@@ -24,16 +24,13 @@ jobs:
 
       - run: npm ci
 
-      - name: Build, sign, notarize & publish
-        # `-- --publish always` is appended to the electron:build:signed script
-        # so electron-builder uploads the artifacts to the GitHub Release for the
-        # pushed tag itself (no separate upload step needed).
-        run: npm run electron:build:signed -- --publish always
+      - name: Build, sign & notarize
+        # Build + sign + notarize on the runner WITHOUT publishing. Publishing is
+        # a separate, deterministic step below — electron-builder's own GitHub
+        # uploader races release creation when there are several artifacts and
+        # silently dropped the dmg/zip/latest-mac.yml, leaving only a blockmap.
+        run: npm run electron:build:signed -- --publish never
         env:
-          # Lets electron-builder publish to GitHub Releases. GITHUB_TOKEN is
-          # provided automatically by Actions and has the contents:write scope
-          # granted above — no personal access token required.
-          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           # Code signing: electron-builder imports this .p12 into a temporary
           # keychain and signs with the Developer ID Application identity it
           # contains. CSC_LINK is the base64 of the exported .p12.
@@ -43,3 +40,18 @@ jobs:
           APPLE_ID: ${{ secrets.APPLE_ID }}
           APPLE_APP_SPECIFIC_PASSWORD: ${{ secrets.APPLE_APP_SPECIFIC_PASSWORD }}
           APPLE_TEAM_ID: ${{ secrets.APPLE_TEAM_ID }}
+
+      - name: Publish GitHub Release
+        # Upload every artifact atomically with the GitHub CLI: the DMG (manual
+        # install) plus the zip + latest-mac.yml + blockmaps that electron-updater
+        # reads for in-app auto-update. GITHUB_TOKEN already has contents:write.
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          gh release create "$GITHUB_REF_NAME" \
+            --title "${GITHUB_REF_NAME#v}" \
+            --generate-notes \
+            release/electron/*.dmg \
+            release/electron/*.zip \
+            release/electron/*.blockmap \
+            release/electron/latest-mac.yml
