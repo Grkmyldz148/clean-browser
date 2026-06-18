@@ -89,7 +89,7 @@ Marketing shots, docs, changelogs and social posts look better when the site sit
 
 ## ⬇️ Install
 
-> **Apple Silicon (arm64) only.** The build is **unsigned** (no paid Apple Developer ID), so macOS needs a one‑time approval. The app is safe — this is just Gatekeeper on unsigned software.
+> **Apple Silicon (arm64) only.** Releases are **signed with a Developer ID and notarized by Apple**, so they open with a normal double‑click — no Gatekeeper workaround needed. Intel Macs need a separate `x64`/universal build.
 
 ### Homebrew (recommended)
 
@@ -97,21 +97,13 @@ Marketing shots, docs, changelogs and social posts look better when the site sit
 brew install --cask Grkmyldz148/tap/clean-browser
 ```
 
-The cask strips the quarantine flag on install, so the unsigned app opens straight away (no “damaged” prompt).
-
 ### Download
 
 1. Grab the latest **`clean-browser-<version>-arm64.dmg`** from [**Releases**](https://github.com/Grkmyldz148/clean-browser/releases).
 2. Open it and drag **Clean Browser** onto **Applications**.
-3. First launch — do **one** of:
-   - **Right‑click the app → Open**, then confirm; _or_
-   - **System Settings → Privacy & Security → “Open Anyway”**; _or_
-   - Terminal:
-     ```sh
-     xattr -dr com.apple.quarantine "/Applications/Clean Browser.app"
-     ```
+3. Double‑click to launch — it's signed and notarized, so macOS opens it without warnings.
 
-> Clean Browser is **ad‑hoc signed but not notarized** — notarization (and a warning‑free double‑click install) requires a paid Apple Developer account. Intel Macs need a separate `x64`/universal build.
+> Clean Browser is signed with a **Developer ID Application** certificate and **notarized + stapled** by Apple.
 
 ---
 
