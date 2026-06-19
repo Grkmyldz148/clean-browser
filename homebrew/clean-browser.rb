@@ -6,7 +6,7 @@
 # For a stricter cask, swap `sha256 :no_check` for the real digest of the asset:
 #   shasum -a 256 clean-browser-<version>-arm64.dmg
 cask "clean-browser" do
-  version "0.1.0"
+  version "0.2.0"
   sha256 :no_check
 
   url "https://github.com/Grkmyldz148/clean-browser/releases/download/v#{version}/clean-browser-#{version}-arm64.dmg"
