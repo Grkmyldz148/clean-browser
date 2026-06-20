@@ -83,6 +83,23 @@ export const PAGE_PROBE = `(() => {
   return { background, radiusRatio };
 })()`;
 
+// A trimmed background-only probe used to cheaply poll for live theme changes
+// (a dark-mode toggle, a delayed JS theme). It deliberately skips PAGE_PROBE's
+// radius scan — no querySelectorAll / getBoundingClientRect — so it can run a
+// couple of times a second without forcing layout. Returns a colour string, or
+// '' when the page paints nothing of its own.
+export const BG_PROBE = `(() => {
+  const clean = (c) => c && c !== 'rgba(0, 0, 0, 0)' && c !== 'transparent' ? c : null;
+  const bgOf = (el) => el ? clean(getComputedStyle(el).backgroundColor) : null;
+  let bg = bgOf(document.body) || bgOf(document.documentElement);
+  if (!bg) {
+    const metas = Array.from(document.querySelectorAll('meta[name="theme-color"]'));
+    const pick = metas.find((m) => { try { return !m.media || matchMedia(m.media).matches; } catch (e) { return !m.media; } }) || metas[0];
+    if (pick && pick.content) bg = pick.content;
+  }
+  return bg || '';
+})()`;
+
 // Hides the page's scrollbars for cleaner capture edges; injected for the shot.
 export const SCROLLBAR_HIDE_CSS = `
   ::-webkit-scrollbar { width: 0 !important; height: 0 !important; display: none !important; }

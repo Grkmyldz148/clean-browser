@@ -1,7 +1,7 @@
 import { LogicalSize } from "@tauri-apps/api/dpi";
 import { Webview } from "@tauri-apps/api/webview";
 
-import { DEFAULT_URL, PAGE_PROBE, VIEWPORT_PRESETS } from "./constants";
+import { BG_PROBE, DEFAULT_URL, PAGE_PROBE, VIEWPORT_PRESETS } from "./constants";
 import {
   addressInput,
   addressLockButton,
@@ -105,6 +105,7 @@ function ensurePageView(): WebviewTag {
   // Electron 22+, so there is nothing to listen for here anymore.
 
   state.pageView = view;
+  startAdaptiveWatch();
   return view;
 }
 
@@ -200,6 +201,14 @@ async function sampleTopStripColor(view: WebviewTag): Promise<string | null> {
   }
 }
 
+// A page's theme can change without a navigation — the user flips the site's
+// dark-mode switch, or the site applies its theme via JS just after load. So
+// besides running on did-stop-loading we poll and re-detect (see startAdaptiveWatch).
+let adaptiveTimer: number | null = null;
+// The cheap background signal from the last analysis, so the poll can tell when
+// the page's colour actually changes and only then pay for a fresh capture.
+let lastAdaptiveSignature: string | null = null;
+
 // Probe the live page for its dominant background + corner-radius ratio and
 // feed auto-match. Prefers the captured top-strip colour (real pixels) and
 // falls back to the CSS probe when capture is unavailable or hasn't painted.
@@ -209,7 +218,12 @@ async function runAdaptiveAnalysis(): Promise<void> {
   }
 
   try {
-    const style = (await state.pageView.executeJavaScript(PAGE_PROBE, false)) as PageStyle | null;
+    const [bg, style] = await Promise.all([
+      state.pageView.executeJavaScript(BG_PROBE, false) as Promise<string>,
+      state.pageView.executeJavaScript(PAGE_PROBE, false) as Promise<PageStyle | null>
+    ]);
+    // Record the cheap signal the watcher compares against on each tick.
+    lastAdaptiveSignature = bg || lastAdaptiveSignature;
     if (!style || !style.background) {
       return;
     }
@@ -222,6 +236,33 @@ async function runAdaptiveAnalysis(): Promise<void> {
   } catch {
     // Page blocked script evaluation; keep the previous theme.
   }
+}
+
+// Re-check the page colour a couple of times a second so live theme switches
+// (and post-load theme application) update the chrome — not just the first read.
+// Cheap by design: each tick runs only the light BG_PROBE, and the expensive
+// capture + re-apply fire solely when that background actually changes.
+function startAdaptiveWatch(): void {
+  if (adaptiveTimer !== null) {
+    return;
+  }
+  adaptiveTimer = window.setInterval(() => {
+    if (
+      !state.pageView ||
+      !state.appearanceSettings.autoMatch ||
+      document.visibilityState !== "visible"
+    ) {
+      return;
+    }
+    void (state.pageView.executeJavaScript(BG_PROBE, false) as Promise<string>)
+      .then((bg) => {
+        if (bg && bg !== lastAdaptiveSignature) {
+          return runAdaptiveAnalysis();
+        }
+        return undefined;
+      })
+      .catch(() => undefined);
+  }, 1200);
 }
 
 export async function createBrowserWebview(url: string): Promise<void> {
