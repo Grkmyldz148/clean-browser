@@ -316,7 +316,7 @@
 
       <span class="eyebrow">
         <span class="dot"></span>
-        Clean Browser · v0.1
+        Clean Browser · <span data-version>v0.2.0</span><span data-downloads></span>
       </span>
 
       <h1><span class="muted">Screenshot the web,</span><br />beautifully framed.</h1>
@@ -354,5 +354,47 @@
         </a>
       </div>
     </main>
+
+    <script>
+      // Single source of truth for the displayed version + download count: the
+      // GitHub Releases API (driven by package.json -> git tag -> release). This
+      // keeps the pill in sync automatically so it never goes stale on release.
+      (async () => {
+        const REPO = "Grkmyldz148/clean-browser";
+        const versionEl = document.querySelector("[data-version]");
+        const downloadsEl = document.querySelector("[data-downloads]");
+        try {
+          const res = await fetch("https://api.github.com/repos/" + REPO + "/releases", {
+            headers: { Accept: "application/vnd.github+json" }
+          });
+          if (!res.ok) return;
+          const releases = await res.json();
+          const published = releases.filter((r) => !r.draft && !r.prerelease);
+
+          // Latest version = newest published release tag.
+          if (versionEl && published.length) {
+            versionEl.textContent = published[0].tag_name;
+          }
+
+          // Total downloads = every .dmg grabbed across all releases (real
+          // installs; the .zip is auto-update traffic, the rest is metadata).
+          let downloads = 0;
+          for (const r of releases) {
+            for (const a of r.assets || []) {
+              if (a.name.endsWith(".dmg")) downloads += a.download_count || 0;
+            }
+          }
+          if (downloadsEl && downloads > 0) {
+            const label =
+              downloads >= 1000
+                ? (downloads / 1000).toFixed(downloads >= 10000 ? 0 : 1) + "k"
+                : String(downloads);
+            downloadsEl.textContent = " · " + label + " downloads";
+          }
+        } catch (_) {
+          // Offline / rate-limited — keep the static fallback in the markup.
+        }
+      })();
+    </script>
   </body>
 </html>
